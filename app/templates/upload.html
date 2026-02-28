@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Upload Data — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4" style="max-width: 700px; margin: 0 auto;">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">Upload Lottery Data</h2>
+    <p class="text-secondary mb-4">Upload CSV files downloaded from the Texas Lottery website. Era detection is automatic.</p>
+
+    {% for game_id, game_name, description in [
+        ('lotto', 'Texas Lotto', 'Pick 6 from 1–54. Handles Era 1 (1992–2003), Era 2 (2003–2006, Pick 5+Bonus), Era 3 (2006–present).'),
+        ('twostep', 'Texas Two Step', 'Pick 4 + Bonus Ball from 1–35. Single consistent format.'),
+        ('powerball', 'Powerball', 'Pick 5 + Powerball. Handles era changes from Feb 2010 to present.')
+    ] %}
+    <div class="card card-le mb-4">
+        <div class="card-header">
+            <span class="fw-semibold">{{ game_name }}</span>
+            <span class="text-secondary small ms-2">{{ description }}</span>
+        </div>
+        <div class="card-body">
+            <form id="form-{{ game_id }}" onsubmit="uploadCSV(event, '{{ game_id }}')">
+                <div class="mb-3">
+                    <input type="file" class="form-control form-control-le" id="file-{{ game_id }}" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-gold">
+                    <i class="bi bi-cloud-upload me-2"></i>Upload {{ game_name }}
+                </button>
+                <div id="status-{{ game_id }}" class="mt-2 small"></div>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function uploadCSV(event, game) {
+    event.preventDefault();
+    const file = document.getElementById(`file-${game}`).files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById(`status-${game}`);
+    statusEl.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Uploading...';
+    statusEl.className = 'mt-2 small text-secondary';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const resp = await fetch(`/api/upload/${game}`, { method: 'POST', body: formData });
+        const data = await resp.json();
+
+        if (data.error) {
+            statusEl.innerHTML = `<i class="bi bi-x-circle me-1"></i>${data.error}`;
+            statusEl.className = 'mt-2 small text-danger';
+        } else {
+            statusEl.innerHTML = `<i class="bi bi-check-circle me-1"></i>${data.rows_inserted} new draws added (${data.rows_parsed} total in file)`;
+            statusEl.className = 'mt-2 small text-success';
+        }
+    } catch (e) {
+        statusEl.innerHTML = `<i class="bi bi-x-circle me-1"></i>Upload failed: ${e.message}`;
+        statusEl.className = 'mt-2 small text-danger';
+    }
+}
+</script>
+{% endblock %}

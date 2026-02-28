@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Coverage Builder — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">Coverage / Wheel Builder</h2>
+    <p class="text-secondary mb-4">Design optimised ticket sets that maximise pair coverage within your budget.</p>
+
+    <div class="row g-4">
+        <!-- Config panel -->
+        <div class="col-lg-4">
+            <div class="card card-le">
+                <div class="card-header fw-semibold"><i class="bi bi-gear me-2"></i>Wheel Configuration</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Game</label>
+                        <select class="form-select form-select-le" id="cvGame" onchange="updatePoolInfo()">
+                            <option value="lotto">Texas Lotto (6/54)</option>
+                            <option value="twostep">Texas Two Step (4/35)</option>
+                            <option value="powerball">Powerball (5/69)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Wheel Type</label>
+                        <select class="form-select form-select-le" id="cvWheelType" onchange="toggleKeyNumbers()">
+                            <option value="abbreviated">Abbreviated (budget-optimised)</option>
+                            <option value="full">Full Wheel (every combination)</option>
+                            <option value="key_number">Key Number (fixed key numbers)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Budget (max tickets)</label>
+                        <input type="number" class="form-control form-control-le" id="cvBudget" value="10" min="1" max="500">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">
+                            Your Number Pool
+                            <small class="text-secondary">(comma-separated or space-separated)</small>
+                        </label>
+                        <textarea class="form-control form-control-le" id="cvNumbers" rows="3" placeholder="e.g. 5 12 18 23 34 42 51"></textarea>
+                        <div class="mt-1 small text-secondary" id="cvPoolInfo"></div>
+                    </div>
+                    <div class="mb-3" id="keyNumbersSection" style="display:none">
+                        <label class="form-label small text-secondary">Key Numbers (appear on every ticket)</label>
+                        <input type="text" class="form-control form-control-le" id="cvKeyNumbers" placeholder="e.g. 7 21">
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-gold btn-lg" onclick="buildCoverage()">
+                            <i class="bi bi-grid-3x3 me-2"></i>Build Wheel
+                        </button>
+                    </div>
+                    <div id="cvStatus" class="mt-2 small"></div>
+                </div>
+            </div>
+
+            <!-- Info panel -->
+            <div class="card card-le mt-3">
+                <div class="card-header fw-semibold"><i class="bi bi-info-circle me-2 text-info"></i>Wheel Types</div>
+                <div class="card-body small text-secondary">
+                    <p class="mb-2"><strong class="text-primary">Abbreviated:</strong> Optimised subset of combos that maximises pair coverage within your budget.</p>
+                    <p class="mb-2"><strong class="text-primary">Full Wheel:</strong> Every combination of your pool — guarantees a jackpot if the winning numbers are all in your pool. Very expensive for large pools.</p>
+                    <p class="mb-0"><strong class="text-primary">Key Number:</strong> Chosen key numbers appear on every ticket. Reduces cost but concentrates risk on those numbers.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results panel -->
+        <div class="col-lg-8">
+            <div id="cvResults">
+                <div class="card card-le text-center py-5">
+                    <div class="card-body">
+                        <i class="bi bi-grid-3x3 display-4 text-secondary mb-3"></i>
+                        <p class="text-secondary">Configure your pool and click Build Wheel.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updatePoolInfo() {
+    const game = document.getElementById('cvGame').value;
+    const pick = { lotto: 6, twostep: 4, powerball: 5 }[game];
+    const nums = parseNumbers('cvNumbers');
+    const info = document.getElementById('cvPoolInfo');
+    if (nums.length > 0) {
+        info.textContent = `${nums.length} numbers selected (need ≥ ${pick} to build wheel)`;
+        info.className = nums.length >= pick ? 'mt-1 small text-success' : 'mt-1 small text-danger';
+    } else {
+        info.textContent = `Pick at least ${pick} numbers for this game`;
+        info.className = 'mt-1 small text-secondary';
+    }
+}
+
+function toggleKeyNumbers() {
+    const wt = document.getElementById('cvWheelType').value;
+    document.getElementById('keyNumbersSection').style.display = wt === 'key_number' ? '' : 'none';
+}
+
+function parseNumbers(id) {
+    const raw = document.getElementById(id).value;
+    return [...new Set(raw.split(/[\s,]+/).map(Number).filter(n => n > 0 && Number.isInteger(n)))];
+}
+
+async function buildCoverage() {
+    const game = document.getElementById('cvGame').value;
+    const numbers = parseNumbers('cvNumbers');
+    const budget = parseInt(document.getElementById('cvBudget').value) || 10;
+    const wheelType = document.getElementById('cvWheelType').value;
+    const keyNumbers = wheelType === 'key_number' ? parseNumbers('cvKeyNumbers') : [];
+    const statusEl = document.getElementById('cvStatus');
+    const resultsEl = document.getElementById('cvResults');
+
+    if (numbers.length < 2) {
+        statusEl.innerHTML = '<span class="text-danger">Enter at least 2 numbers.</span>';
+        return;
+    }
+
+    resultsEl.innerHTML = `<div class="card card-le text-center py-5"><div class="card-body">
+        <div class="spinner-border text-warning mb-3"></div>
+        <p class="text-secondary">Building wheel...</p>
+    </div></div>`;
+    statusEl.innerHTML = '';
+
+    try {
+        const resp = await fetch('/api/coverage/build', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ game, numbers, budget, wheel_type: wheelType, key_numbers: keyNumbers }),
+        });
+        const data = await resp.json();
+
+        if (data.error) {
+            resultsEl.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            return;
+        }
+
+        renderCoverageResults(data, game);
+    } catch (e) {
+        resultsEl.innerHTML = `<div class="alert alert-danger">Error: ${e.message}</div>`;
+    }
+}
+
+function renderCoverageResults(data, game) {
+    const gameName = { lotto: 'Texas Lotto', twostep: 'Texas Two Step', powerball: 'Powerball' }[game];
+    const isBonusGame = game === 'twostep' || game === 'powerball';
+    const bonusLabel = game === 'twostep' ? 'Bonus' : 'PB';
+
+    let html = `
+    <div class="card card-le mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold"><i class="bi bi-grid-3x3 me-2 text-warning"></i>${gameName} — ${data.wheel_type.replace('_', ' ').toUpperCase()} Wheel</span>
+            <span class="mono small text-secondary">${data.pool.length} numbers → ${data.ticket_count} tickets</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3 text-center">
+                    <div class="fw-bold fs-4 text-warning mono">${data.ticket_count}</div>
+                    <div class="text-secondary small">Tickets</div>
+                </div>
+                <div class="col-6 col-md-3 text-center">
+                    <div class="fw-bold fs-4 text-emerald mono">$${data.cost}</div>
+                    <div class="text-secondary small">Total Cost</div>
+                </div>
+                <div class="col-6 col-md-3 text-center">
+                    <div class="fw-bold fs-4 text-blue mono">${data.pair_coverage_pct}%</div>
+                    <div class="text-secondary small">Pair Coverage</div>
+                </div>
+                <div class="col-6 col-md-3 text-center">
+                    <div class="fw-bold fs-4 text-purple mono">${data.pairs_covered}/${data.total_pairs}</div>
+                    <div class="text-secondary small">Pairs Covered</div>
+                </div>
+            </div>
+            <div class="alert mb-3" style="background:rgba(96,165,250,.1);border:1px solid var(--accent-blue);border-radius:8px;">
+                <i class="bi bi-shield-check me-2 text-blue"></i>${data.guarantee}
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-le">
+        <div class="card-header fw-semibold"><i class="bi bi-card-list me-2"></i>Ticket Set</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-le table-sm mb-0">
+                    <thead><tr><th>#</th><th>Numbers</th><th>Sum</th></tr></thead>
+                    <tbody>`;
+
+    data.tickets.forEach((ticket, i) => {
+        const nums = ticket.map(n => `<span class="number-badge" style="width:30px;height:30px;font-size:.7rem">${n}</span>`).join('');
+        const total = ticket.reduce((a, b) => a + b, 0);
+        html += `<tr><td class="text-secondary mono">${i + 1}</td><td>${nums}</td><td class="mono text-secondary">${total}</td></tr>`;
+    });
+
+    html += `</tbody></table></div></div></div>`;
+
+    document.getElementById('cvResults').innerHTML = html;
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('cvNumbers').addEventListener('input', updatePoolInfo);
+    updatePoolInfo();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — LottoEdge{% endblock %}
+
+{% block sidebar %}
+<div class="p-3">
+    <!-- Game selector -->
+    <div class="mb-4">
+        <h6 class="sidebar-heading text-uppercase fw-bold mb-2" style="color: var(--accent-gold); font-size: 0.7rem; letter-spacing: 1px;">Game</h6>
+        <div class="d-grid gap-2">
+            {% for g in games %}
+            <a href="/?game={{ g.id }}" class="btn btn-sm {{ 'btn-gold' if g.id == active_game else 'btn-outline-secondary' }}">
+                {{ g.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="mb-4">
+        <h6 class="sidebar-heading text-uppercase fw-bold mb-2" style="color: var(--accent-gold); font-size: 0.7rem; letter-spacing: 1px;">Database</h6>
+        <div class="stat-item">
+            <span class="text-secondary small">Draws loaded</span>
+            <span class="mono fw-bold {% if n_draws == 0 %}text-danger{% else %}text-success{% endif %}">{{ n_draws }}</span>
+        </div>
+        {% if active_game == 'lotto' %}
+        <div class="mt-2">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="era2Toggle" onchange="toggleEra2(this.checked)"
+                    {% if include_era2 %}checked{% endif %}>
+                <label class="form-check-label small text-secondary" for="era2Toggle">
+                    Include Era 2 data
+                    <i class="bi bi-info-circle" title="Era 2 (2003-2006) used Pick 5 + Bonus Ball — different game structure"></i>
+                </label>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Jackpot sidebar -->
+    {% for game_id, jp in jackpots.items() %}
+    {% if game_id == active_game %}
+    <div class="mb-4">
+        <h6 class="sidebar-heading text-uppercase fw-bold mb-2" style="color: var(--accent-gold); font-size: 0.7rem; letter-spacing: 1px;">Jackpot</h6>
+        <div class="stat-item">
+            <span class="text-secondary small">Current</span>
+            <span class="mono fw-bold text-warning">${{ "{:,.0f}".format(jp.amount) }}</span>
+        </div>
+        <div class="stat-item mt-1">
+            <span class="text-secondary small">Signal</span>
+            <span class="badge badge-signal-{{ jp.ev.signal.lower() }}">{{ jp.ev.signal }}</span>
+        </div>
+        <div class="stat-item mt-1">
+            <span class="text-secondary small">EV/ticket</span>
+            <span class="mono small {% if jp.ev.ev < 0 %}text-danger{% else %}text-success{% endif %}">
+                ${{ "%.4f"|format(jp.ev.ev) }}
+            </span>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <!-- Generate Picks CTA -->
+    <div class="d-grid mt-3">
+        <a href="/picks?game={{ active_game }}" class="btn btn-gold btn-lg">
+            <i class="bi bi-magic me-2"></i>Generate Picks
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <div class="d-flex align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-0" style="font-family: 'DM Sans', sans-serif;">
+                {% for g in games %}{% if g.id == active_game %}{{ g.name }}{% endif %}{% endfor %}
+                <span class="text-secondary fw-normal fs-6 ms-2">Analysis Dashboard</span>
+            </h1>
+        </div>
+    </div>
+
+    {% if not has_data %}
+    <!-- No data state -->
+    <div class="card card-le text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-cloud-upload display-3 text-secondary mb-3"></i>
+            <h4 class="text-secondary">No Data Loaded</h4>
+            <p class="text-secondary mb-4">Upload a CSV file to start analyzing lottery draws.</p>
+            <a href="/upload" class="btn btn-gold btn-lg">
+                <i class="bi bi-cloud-upload me-2"></i>Upload CSV
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Heatmap Row -->
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="card card-le">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold"><i class="bi bi-fire me-2 text-warning"></i>Hot/Cold Heatmap</span>
+                    <small class="text-secondary">Medium-term (last 30 draws)</small>
+                </div>
+                <div class="card-body">
+                    <div id="heatmapContainer" class="heatmap-grid">
+                        <div class="text-center text-secondary py-3">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Loading heatmap...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Positional + Pair Row -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-7">
+            <div class="card card-le h-100">
+                <div class="card-header">
+                    <span class="fw-semibold"><i class="bi bi-table me-2 text-info"></i>Positional Leaders</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="positionalTable" class="table-responsive">
+                        <div class="text-center text-secondary py-3">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card card-le h-100">
+                <div class="card-header">
+                    <span class="fw-semibold"><i class="bi bi-diagram-3 me-2 text-purple"></i>Top Pairs</span>
+                </div>
+                <div class="card-body">
+                    <div id="pairsContainer">
+                        <div class="text-center text-secondary py-3">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skip Chart + Sum Histogram Row -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header">
+                    <span class="fw-semibold"><i class="bi bi-bar-chart me-2 text-warning"></i>Skip &amp; Hit (Due Score)</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="skipChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header">
+                    <span class="fw-semibold"><i class="bi bi-bar-chart-steps me-2 text-emerald"></i>Sum Distribution + 70% Band</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="sumChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance + Groups Row -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header">
+                    <span class="fw-semibold"><i class="bi bi-pie-chart me-2 text-blue"></i>Odd/Even &amp; High/Low Balance</span>
+                </div>
+                <div class="card-body">
+                    <div id="balanceContainer">
+                        <div class="text-center text-secondary py-3">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header">
+                    <span class="fw-semibold"><i class="bi bi-grid me-2 text-amber"></i>Number Group Distribution</span>
+                </div>
+                <div class="card-body">
+                    <canvas id="groupChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const GAME = "{{ active_game }}";
+const INCLUDE_ERA2 = {{ 'true' if include_era2 else 'false' }};
+
+function toggleEra2(checked) {
+    const url = new URL(window.location);
+    url.searchParams.set('include_era2', checked);
+    window.location = url;
+}
+
+// Load all analysis data on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if ({{ 'true' if has_data else 'false' }}) {
+        loadDashboard(GAME, INCLUDE_ERA2);
+    }
+});
+</script>
+{% endblock %}

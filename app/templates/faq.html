@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+{% block title %}FAQ — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">
+        <i class="bi bi-question-circle me-2 text-warning"></i>Frequently Asked Questions
+    </h2>
+    <p class="text-secondary mb-4">Everything you need to know about using LottoEdge.</p>
+
+    <!-- General -->
+    <h5 class="fw-bold mb-3 text-warning"><i class="bi bi-info-circle me-2"></i>General</h5>
+    <div class="accordion mb-4" id="faqGeneral">
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g1">
+                    Can LottoEdge guarantee lottery wins?
+                </button>
+            </h2>
+            <div id="g1" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                <div class="accordion-body small text-secondary">
+                    <strong class="text-danger">No.</strong> No system can guarantee lottery wins. The lottery is a random, negative expected value game. LottoEdge applies statistical analysis and machine learning to help you make more informed selections, but each draw is statistically independent. The app is designed for educational purposes and entertainment. Always play within your budget.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g2">
+                    Which games does LottoEdge support?
+                </button>
+            </h2>
+            <div id="g2" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                <div class="accordion-body small text-secondary">
+                    LottoEdge supports three games:
+                    <ul class="mt-2 mb-0">
+                        <li><strong class="text-warning">Texas Lotto</strong> — Pick 6 from 1–54. Jackpot odds 1 in 25,827,165.</li>
+                        <li><strong class="text-warning">Texas Two Step</strong> — Pick 4 from 1–35 + 1 Bonus Ball from 1–35. Jackpot odds 1 in 1,832,600.</li>
+                        <li><strong class="text-warning">Powerball</strong> — Pick 5 from 1–69 + 1 Powerball from 1–26. Jackpot odds 1 in 292,201,338.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g3">
+                    Where does LottoEdge get its draw data?
+                </button>
+            </h2>
+            <div id="g3" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                <div class="accordion-body small text-secondary">
+                    LottoEdge does not fetch data automatically. You upload CSV files from the Texas Lottery website. Go to <strong>/upload</strong>, choose your game, and upload the CSV. The app parses the file, detects game eras, and stores all draws in a local SQLite database at <span class="mono">data/lottoedge.db</span>.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g4">
+                    Will I lose my data if I restart the app?
+                </button>
+            </h2>
+            <div id="g4" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
+                <div class="accordion-body small text-secondary">
+                    <strong class="text-success">No.</strong> All draw history, jackpot entries, and settings are stored in <span class="mono">data/lottoedge.db</span> — a file on your disk that persists across restarts. The only way to lose data is to delete that file or the <span class="mono">data/</span> folder.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data & Upload -->
+    <h5 class="fw-bold mb-3 text-blue"><i class="bi bi-cloud-upload me-2"></i>Data &amp; Upload</h5>
+    <div class="accordion mb-4" id="faqData">
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#d1">
+                    What is the CSV format required?
+                </button>
+            </h2>
+            <div id="d1" class="accordion-collapse collapse" data-bs-parent="#faqData">
+                <div class="accordion-body small text-secondary">
+                    Download CSVs directly from the Texas Lottery website — they are already in the correct format. The expected columns are:
+                    <ul class="mt-2 mb-1">
+                        <li><strong>Texas Lotto:</strong> Game Name, Month, Day, Year, Num1–Num5, Num6/Bonus Ball</li>
+                        <li><strong>Texas Two Step:</strong> Game Name, Month, Day, Year, Num1–Num4, Bonus Ball</li>
+                        <li><strong>Powerball:</strong> Game Name, Month, Day, Year, Num1–Num5, Powerball, Power Play</li>
+                    </ul>
+                    No header row is expected — the parser assigns column names automatically.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#d2">
+                    What is "Era 2" for Texas Lotto?
+                </button>
+            </h2>
+            <div id="d2" class="accordion-collapse collapse" data-bs-parent="#faqData">
+                <div class="accordion-body small text-secondary">
+                    Texas Lotto has three historical eras:
+                    <ul class="mt-2 mb-2">
+                        <li><strong>Era 1</strong> (Nov 1992 – May 2003): Pick 6, no bonus ball</li>
+                        <li><strong>Era 2</strong> (May 2003 – Apr 2006): Pick 5 + Bonus Ball — a different game format</li>
+                        <li><strong>Era 3</strong> (Apr 2006 – present): Pick 6, no bonus ball (current)</li>
+                    </ul>
+                    Era 2 is <strong>excluded by default</strong> because it used a different game structure. You can include it via the sidebar toggle, but only Num1–Num5 are used as comparable data points.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#d3">
+                    What is "Era 3 only" for Powerball?
+                </button>
+            </h2>
+            <div id="d3" class="accordion-collapse collapse" data-bs-parent="#faqData">
+                <div class="accordion-body small text-secondary">
+                    Powerball changed its number pools significantly over the years. Only Era 3 (Oct 2015–present: white balls 1–69, Powerball 1–26) matches the current game format. Earlier eras had smaller white ball pools (1–59) and different Powerball pools. The app defaults to Era 3 only so analysis is relevant to tickets you can actually buy today.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#d4">
+                    Can I re-upload to add new draws?
+                </button>
+            </h2>
+            <div id="d4" class="accordion-collapse collapse" data-bs-parent="#faqData">
+                <div class="accordion-body small text-secondary">
+                    Yes. Uploading a new CSV for a game replaces all existing draws for that game. To keep your data current, download the latest CSV from the Texas Lottery website and re-upload it whenever new draws occur.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis -->
+    <h5 class="fw-bold mb-3 text-purple"><i class="bi bi-bar-chart me-2"></i>Analysis &amp; Statistics</h5>
+    <div class="accordion mb-4" id="faqAnalysis">
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#a1">
+                    What does the heatmap show?
+                </button>
+            </h2>
+            <div id="a1" class="accordion-collapse collapse" data-bs-parent="#faqAnalysis">
+                <div class="accordion-body small text-secondary">
+                    The heatmap displays every number in the pool color-coded by how frequently it has appeared in the last 30 draws. <span class="text-danger">Red/warm</span> = hot (drawn often). <span class="text-blue">Blue/cool</span> = cold (drawn rarely). Hovering a number shows its exact frequency and trend direction.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#a2">
+                    What does "Due Score" mean?
+                </button>
+            </h2>
+            <div id="a2" class="accordion-collapse collapse" data-bs-parent="#faqAnalysis">
+                <div class="accordion-body small text-secondary">
+                    Due Score = current skip ÷ average skip. A number with a due score of 2.0 has gone twice as long as usual without being drawn — it is "overdue." A score of 0.3 means it was drawn very recently. This metric is one of 11 inputs to the composite score.
+                    <br><br>
+                    <strong class="text-warning">Important:</strong> In a truly random lottery, due score has no predictive power — past skips don't influence future draws. It is included because some lottery theorists assign value to it, but it should not be over-weighted.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#a3">
+                    What does "Spans 3 groups (preferred 4-5)" mean in pick filter notes?
+                </button>
+            </h2>
+            <div id="a3" class="accordion-collapse collapse" data-bs-parent="#faqAnalysis">
+                <div class="accordion-body small text-secondary">
+                    Texas Lotto numbers are divided into decade groups: 1–9, 10–19, 20–29, 30–39, 40–49, 50–54. A pick that "spans 3 groups" has all 6 numbers falling within only 3 of those groups — for example, all numbers between 10 and 39.
+                    <br><br>
+                    Historical analysis shows most jackpot winners span <strong>4–5 groups</strong>. A pick spanning only 3 groups is still allowed, but it receives a lower group balance score in the composite ranking.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#a4">
+                    What is the 70% Sum Rule?
+                </button>
+            </h2>
+            <div id="a4" class="accordion-collapse collapse" data-bs-parent="#faqAnalysis">
+                <div class="accordion-body small text-secondary">
+                    Popularized by Gail Howard. The sum of all numbers in a winning combination falls within a predictable range. For Texas Lotto (6 numbers from 1–54), the theoretical min sum is 21 and the max is 309 — but real jackpot winners cluster between roughly 115 and 210.
+                    <br><br>
+                    The app calculates the 15th–85th percentile of all historical sums (the "70% band") and flags any generated pick whose sum falls outside. These picks still appear but are ranked lower.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#a5">
+                    How does positional analysis work for Texas Two Step?
+                </button>
+            </h2>
+            <div id="a5" class="accordion-collapse collapse" data-bs-parent="#faqAnalysis">
+                <div class="accordion-body small text-secondary">
+                    The 4 main numbers are sorted ascending and tracked in positions 1–4. The Bonus Ball is tracked in its own separate position track because it is drawn from an independent pool. The white ball and bonus ball analyses never mix — they are completely separate pipelines.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Picks -->
+    <h5 class="fw-bold mb-3 text-emerald"><i class="bi bi-card-list me-2"></i>Pick Generation</h5>
+    <div class="accordion mb-4" id="faqPicks">
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#p1">
+                    How are picks generated?
+                </button>
+            </h2>
+            <div id="p1" class="accordion-collapse collapse" data-bs-parent="#faqPicks">
+                <div class="accordion-body small text-secondary">
+                    <ol class="mb-0">
+                        <li>All numbers in the game pool are scored using the Composite Scorer (11 weighted factors from all analysis modules).</li>
+                        <li>Top candidates are selected for each position using positional analysis.</li>
+                        <li>Each combination is validated against all filters: odd/even balance, high/low balance, 70% sum range, group distribution, consecutive limits, and anti-cluster exclusions.</li>
+                        <li>Combinations failing filters have their weakest number swapped and are re-evaluated.</li>
+                        <li>Passing combinations are ranked by total composite score. Top 5–10 are returned.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#p2">
+                    What do the weight sliders on the picks page do?
+                </button>
+            </h2>
+            <div id="p2" class="accordion-collapse collapse" data-bs-parent="#faqPicks">
+                <div class="accordion-body small text-secondary">
+                    Each slider adjusts how much influence a specific analysis module has on the composite score. For example, increasing the <strong>LSTM</strong> weight emphasizes the neural network's predictions. Increasing <strong>Due Score</strong> favors overdue numbers. The weights are normalized automatically so they always sum to 100%. Experiment to match your preferred strategy.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#p3">
+                    How is the Powerball pick structured?
+                </button>
+            </h2>
+            <div id="p3" class="accordion-collapse collapse" data-bs-parent="#faqPicks">
+                <div class="accordion-body small text-secondary">
+                    Powerball picks show 5 white ball numbers (from 1–69) displayed as white circles, and 1 red Powerball number (from 1–26) displayed as a red circle — matching the real game's visual identity. The two parts are analyzed through completely independent pipelines. The Powerball uses a simplified analysis (frequency, skip/hit, due score only) since it's a single number from a smaller pool.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#p4">
+                    Are LottoEdge picks better than random quick picks?
+                </button>
+            </h2>
+            <div id="p4" class="accordion-collapse collapse" data-bs-parent="#faqPicks">
+                <div class="accordion-body small text-secondary">
+                    <strong class="text-warning">Statistically, no.</strong> The Risk Transparency Panel on every picks page shows the true comparison — the probability of each match tier is nearly identical between a statistically generated pick and a random quick pick. The lottery is designed to be random, and no analysis method can overcome that fundamental fact.
+                    <br><br>
+                    What LottoEdge <em>does</em> provide: a structured way to apply the strategies from seven published lottery books, avoid obviously unbalanced combinations, and make more deliberate choices if you choose to play.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jackpot & EV -->
+    <h5 class="fw-bold mb-3" style="color:var(--accent-amber)"><i class="bi bi-trophy me-2"></i>Jackpot &amp; Expected Value</h5>
+    <div class="accordion mb-4" id="faqJackpot">
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#j1">
+                    What does the Play / Hold signal mean?
+                </button>
+            </h2>
+            <div id="j1" class="accordion-collapse collapse" data-bs-parent="#faqJackpot">
+                <div class="accordion-body small text-secondary">
+                    <ul class="mb-0">
+                        <li><span class="text-danger fw-bold">HOLD</span> — Expected value is significantly negative. The ticket costs more than its statistical expected return.</li>
+                        <li><span class="text-warning fw-bold">CONSIDER</span> — EV is approaching breakeven. The jackpot is large enough that the signal is less negative, though still statistically negative.</li>
+                        <li><span class="text-success fw-bold">FAVORABLE</span> — EV is neutral or positive (rare). Jackpot is large enough that expected return exceeds ticket cost after accounting for taxes and prize splitting probability.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#j2">
+                    Why does Powerball need such a huge jackpot to reach FAVORABLE?
+                </button>
+            </h2>
+            <div id="j2" class="accordion-collapse collapse" data-bs-parent="#faqJackpot">
+                <div class="accordion-body small text-secondary">
+                    Powerball jackpot odds are 1 in 292,201,338. The ticket costs $2. Breakeven (ignoring taxes and splitting) would require a jackpot of ~$584M. After federal taxes (~37%) and jackpot split probability at high amounts, the true breakeven is substantially higher — over $1 billion in many analyses. At most jackpot levels, Powerball is deeply negative EV entertainment.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#j3">
+                    How do I update the jackpot amount?
+                </button>
+            </h2>
+            <div id="j3" class="accordion-collapse collapse" data-bs-parent="#faqJackpot">
+                <div class="accordion-body small text-secondary">
+                    Go to the <strong>/jackpot</strong> page and enter the current jackpot amount manually. LottoEdge does not scrape jackpot data automatically — you enter the amount you see on the Texas Lottery website or on a ticket terminal. The EV calculator updates immediately.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coverage -->
+    <h5 class="fw-bold mb-3 text-secondary"><i class="bi bi-grid me-2"></i>Coverage &amp; Wheeling</h5>
+    <div class="accordion mb-4" id="faqCoverage">
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#c1">
+                    What is a wheel system?
+                </button>
+            </h2>
+            <div id="c1" class="accordion-collapse collapse" data-bs-parent="#faqCoverage">
+                <div class="accordion-body small text-secondary">
+                    A wheeling system takes a pool of your chosen numbers (e.g., 10 numbers you like) and generates a set of tickets that systematically covers combinations from that pool. Instead of playing one ticket, you play several tickets designed to ensure that if enough of your chosen numbers are drawn, at least one ticket hits a prize tier.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#c2">
+                    What is the difference between Full, Abbreviated, and Key Number wheels?
+                </button>
+            </h2>
+            <div id="c2" class="accordion-collapse collapse" data-bs-parent="#faqCoverage">
+                <div class="accordion-body small text-secondary">
+                    <ul class="mb-0">
+                        <li><strong class="text-primary">Full Wheel</strong> — Every possible combination of your pool. If you pick 8 numbers for Texas Lotto, that's C(8,6) = 28 tickets. Guarantees a jackpot if all winning numbers are in your pool. Very expensive for large pools.</li>
+                        <li><strong class="text-primary">Abbreviated Wheel</strong> — An optimized subset of combinations that maximizes pair coverage within your budget. Less coverage than full, but affordable.</li>
+                        <li><strong class="text-primary">Key Number Wheel</strong> — One or two numbers you're confident about appear on every ticket. Reduces cost but concentrates risk on those key numbers being drawn.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#c3">
+                    What does "Pair Coverage %" mean?
+                </button>
+            </h2>
+            <div id="c3" class="accordion-collapse collapse" data-bs-parent="#faqCoverage">
+                <div class="accordion-body small text-secondary">
+                    Given your pool of N numbers, there are C(N, 2) possible pairs. Pair Coverage % is how many of those pairs appear on at least one ticket in your wheel. A 100% pair coverage means every possible pair from your pool appears on at least one of your tickets — so if any two of your numbers are drawn, you have a ticket containing that pair.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Honest disclaimer -->
+    <div class="alert mt-2" style="background:rgba(248,113,113,.08);border:1px solid var(--accent-rose);border-radius:10px;">
+        <h6 class="fw-bold text-danger"><i class="bi bi-exclamation-octagon me-2"></i>Responsible Play Reminder</h6>
+        <p class="small text-secondary mb-0">
+            LottoEdge is an educational and entertainment tool. Lottery draws are random events — statistical analysis cannot change the underlying odds or guarantee outcomes. The expected value of lottery play is negative at all normal jackpot levels. Set a fixed entertainment budget and never spend money you cannot afford to lose.
+            If gambling is causing problems, contact the <strong>National Problem Gambling Helpline: 1-800-522-4700</strong>.
+        </p>
+    </div>
+</div>
+{% endblock %}

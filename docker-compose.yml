@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  lottoedge:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./data:/app/data
+      - ./ml_models:/app/ml_models
+    environment:
+      - APP_ENV=development
+      - APP_NAME=LottoEdge
+    restart: unless-stopped

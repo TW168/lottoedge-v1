@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Architecture — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">
+        <i class="bi bi-diagram-3 me-2 text-warning"></i>Software Architecture
+    </h2>
+    <p class="text-secondary mb-4">How LottoEdge is structured — layers, data flow, and technology stack.</p>
+
+    <!-- Tech Stack -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card card-le">
+                <div class="card-header fw-semibold"><i class="bi bi-stack me-2 text-warning"></i>Technology Stack</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded" style="background:var(--bg-tertiary)">
+                                <div class="fw-semibold text-warning mb-2"><i class="bi bi-server me-2"></i>Backend</div>
+                                <ul class="list-unstyled mb-0 small text-secondary">
+                                    <li><span class="text-primary">FastAPI</span> — async web framework</li>
+                                    <li><span class="text-primary">Python 3.12+</span> — runtime</li>
+                                    <li><span class="text-primary">uv</span> — package manager</li>
+                                    <li><span class="text-primary">Uvicorn</span> — ASGI server</li>
+                                    <li><span class="text-primary">SQLAlchemy</span> — ORM / DB layer</li>
+                                    <li><span class="text-primary">Pydantic</span> — data validation</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded" style="background:var(--bg-tertiary)">
+                                <div class="fw-semibold text-blue mb-2"><i class="bi bi-window me-2"></i>Frontend</div>
+                                <ul class="list-unstyled mb-0 small text-secondary">
+                                    <li><span class="text-primary">Jinja2</span> — server-side templates</li>
+                                    <li><span class="text-primary">Bootstrap 5</span> — UI framework</li>
+                                    <li><span class="text-primary">Chart.js</span> — data visualization</li>
+                                    <li><span class="text-primary">Bootstrap Icons</span> — icon set</li>
+                                    <li><span class="text-primary">Google Fonts</span> — DM Sans, IBM Plex, JetBrains Mono</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded" style="background:var(--bg-tertiary)">
+                                <div class="fw-semibold text-purple mb-2"><i class="bi bi-cpu me-2"></i>Data & ML</div>
+                                <ul class="list-unstyled mb-0 small text-secondary">
+                                    <li><span class="text-primary">pandas</span> — data processing</li>
+                                    <li><span class="text-primary">numpy</span> — numerical computation</li>
+                                    <li><span class="text-primary">scipy</span> — statistics</li>
+                                    <li><span class="text-primary">scikit-learn</span> — Random Forest, GBM</li>
+                                    <li><span class="text-primary">TensorFlow/Keras</span> — LSTM model</li>
+                                    <li><span class="text-primary">SQLite</span> — persistent storage</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Architecture Diagram -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card card-le">
+                <div class="card-header fw-semibold"><i class="bi bi-diagram-2 me-2 text-emerald"></i>System Layers</div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-stretch">
+                        <!-- Layer 1 -->
+                        <div class="col-12">
+                            <div class="p-3 rounded text-center" style="background:rgba(245,200,66,.08);border:1px solid var(--accent-gold);">
+                                <div class="fw-semibold text-warning mb-1"><i class="bi bi-globe me-2"></i>Layer 1 — Presentation</div>
+                                <div class="small text-secondary">Jinja2 HTML templates · Bootstrap 5 UI · Chart.js visualizations · Vanilla JS fetch API</div>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center text-secondary"><i class="bi bi-arrow-down"></i></div>
+                        <!-- Layer 2 -->
+                        <div class="col-12">
+                            <div class="p-3 rounded text-center" style="background:rgba(96,165,250,.08);border:1px solid var(--accent-blue);">
+                                <div class="fw-semibold text-blue mb-1"><i class="bi bi-layout-wtf me-2"></i>Layer 2 — Routing (FastAPI Routers)</div>
+                                <div class="small text-secondary">
+                                    <span class="mono">dashboard.py</span> · <span class="mono">analysis.py</span> · <span class="mono">picks.py</span> · <span class="mono">jackpot.py</span> · <span class="mono">upload.py</span> · <span class="mono">about.py</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center text-secondary"><i class="bi bi-arrow-down"></i></div>
+                        <!-- Layer 3 -->
+                        <div class="col-12">
+                            <div class="p-3 rounded text-center" style="background:rgba(167,139,250,.08);border:1px solid var(--accent-purple);">
+                                <div class="fw-semibold text-purple mb-2"><i class="bi bi-gear me-2"></i>Layer 3 — Services (19 Analysis Modules)</div>
+                                <div class="row g-2 mt-1">
+                                    <div class="col-md-3 small text-secondary">
+                                        <strong class="text-warning">Tier 1 — Statistical</strong><br>
+                                        frequency · positional · cluster<br>balance · sum_range · skip_hit<br>group_dist · consecutive
+                                    </div>
+                                    <div class="col-md-3 small text-secondary">
+                                        <strong class="text-blue">Tier 2 — Mathematical</strong><br>
+                                        probability · coverage<br>expected_value
+                                    </div>
+                                    <div class="col-md-3 small text-secondary">
+                                        <strong class="text-purple">Tier 3 — ML/AI</strong><br>
+                                        ml_engine (LSTM)<br>monte_carlo (ensemble)
+                                    </div>
+                                    <div class="col-md-3 small text-secondary">
+                                        <strong class="text-emerald">Tier 4–5 — Picks</strong><br>
+                                        composite_scorer<br>pick_generator<br>data_loader
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center text-secondary"><i class="bi bi-arrow-down"></i></div>
+                        <!-- Layer 4 -->
+                        <div class="col-12">
+                            <div class="p-3 rounded text-center" style="background:rgba(52,211,153,.08);border:1px solid var(--accent-emerald);">
+                                <div class="fw-semibold text-emerald mb-1"><i class="bi bi-database me-2"></i>Layer 4 — Data</div>
+                                <div class="small text-secondary">SQLite (<span class="mono">data/lottoedge.db</span>) · SQLAlchemy ORM · CSV upload parser · ML model storage (<span class="mono">ml_models/</span>)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Structure -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold"><i class="bi bi-folder2-open me-2 text-warning"></i>Project Structure</div>
+                <div class="card-body">
+                    <pre class="small text-secondary mb-0" style="line-height:1.6">lottoedge/
+├── app/
+│   ├── main.py           <span class="text-primary"># App entry point</span>
+│   ├── config.py         <span class="text-primary"># Settings</span>
+│   ├── models/
+│   │   ├── database.py   <span class="text-primary"># SQLAlchemy models</span>
+│   │   └── schemas.py    <span class="text-primary"># Pydantic schemas</span>
+│   ├── routers/
+│   │   ├── dashboard.py  <span class="text-primary"># Main pages</span>
+│   │   ├── analysis.py   <span class="text-primary"># Analysis API</span>
+│   │   ├── picks.py      <span class="text-primary"># Pick generation</span>
+│   │   ├── upload.py     <span class="text-primary"># CSV upload</span>
+│   │   ├── jackpot.py    <span class="text-primary"># Jackpot monitor</span>
+│   │   └── about.py      <span class="text-primary"># Docs pages</span>
+│   ├── services/         <span class="text-primary"># 19 modules</span>
+│   ├── templates/        <span class="text-primary"># Jinja2 HTML</span>
+│   └── static/           <span class="text-primary"># CSS / JS / img</span>
+├── data/                 <span class="text-primary"># SQLite + CSVs</span>
+├── ml_models/            <span class="text-primary"># Trained models</span>
+└── tests/                <span class="text-primary"># pytest suite</span></pre>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold"><i class="bi bi-arrow-left-right me-2 text-blue"></i>Data Flow</div>
+                <div class="card-body">
+                    <ol class="small text-secondary ps-3" style="line-height:2">
+                        <li><strong class="text-primary">CSV Upload</strong> — User uploads Texas Lotto, Two Step, or Powerball CSV via <span class="mono">/upload</span></li>
+                        <li><strong class="text-primary">Parsing</strong> — <span class="mono">data_loader.py</span> detects game eras, normalizes columns, stores rows in SQLite</li>
+                        <li><strong class="text-primary">Analysis Request</strong> — Browser calls <span class="mono">/api/analysis/{game}</span></li>
+                        <li><strong class="text-primary">Service Pipeline</strong> — Router invokes all 19 modules in sequence against the DB data</li>
+                        <li><strong class="text-primary">Composite Score</strong> — Each number receives a 0–100 score from weighted module outputs</li>
+                        <li><strong class="text-primary">Pick Generation</strong> — Top-scored numbers are assembled into combinations passing all filters</li>
+                        <li><strong class="text-primary">JSON Response</strong> — Results returned to browser; Chart.js renders visualizations</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card card-le">
+                <div class="card-header fw-semibold"><i class="bi bi-plug me-2 text-purple"></i>API Endpoints</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-le table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:80px">Method</th>
+                                    <th>Path</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/</td><td>Main analysis dashboard</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/history</td><td>Historical draw explorer</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/picks</td><td>Pick generation page</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/upload</td><td>CSV upload page</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/jackpot</td><td>Jackpot monitor</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/coverage</td><td>Wheel / coverage builder</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/architecture</td><td>This page</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/modules</td><td>Module explanations</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/faq</td><td>Frequently asked questions</td><td class="text-secondary small">HTML</td></tr>
+                                <tr><td><span class="badge bg-success">POST</span></td><td class="mono">/api/upload/{game}</td><td>Upload CSV data</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/analysis/{game}</td><td>Full analysis results</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/frequency/{game}</td><td>Frequency data</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/positional/{game}</td><td>Positional matrix</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/clusters/{game}</td><td>Pair / cluster data</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/skip/{game}</td><td>Skip &amp; hit patterns</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/sum-range/{game}</td><td>Sum distribution + 70% band</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-success">POST</span></td><td class="mono">/api/picks/generate</td><td>Generate optimized picks</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-success">POST</span></td><td class="mono">/api/jackpot/update</td><td>Update jackpot amount</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/jackpot/ev/{game}</td><td>Expected value at current jackpot</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/ml/predict/{game}</td><td>ML prediction scores</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-primary">GET</span></td><td class="mono">/api/probability/{game}</td><td>Exact probability tables</td><td class="text-secondary small">JSON</td></tr>
+                                <tr><td><span class="badge bg-success">POST</span></td><td class="mono">/api/coverage/build</td><td>Build wheeling system</td><td class="text-secondary small">JSON</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Modules — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">
+        <i class="bi bi-cpu me-2 text-warning"></i>Analysis Modules
+    </h2>
+    <p class="text-secondary mb-4">19 analysis modules organized into 5 tiers — from classical statistics to AI/ML prediction.</p>
+
+    <!-- Source Books -->
+    <div class="card card-le mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-book me-2 text-warning"></i>Strategy Foundation — Source Books</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-le table-sm mb-0">
+                    <thead><tr><th>#</th><th>Book</th><th>Author</th><th>Primary Contribution</th></tr></thead>
+                    <tbody>
+                        <tr><td class="mono text-warning">1</td><td>Secrets of Winning Lotto &amp; Lottery</td><td>Avery Cardoza</td><td class="text-secondary small">Positional analysis, cluster analysis, bankroll management</td></tr>
+                        <tr><td class="mono text-warning">2</td><td>Lottery Master Guide</td><td>Gail Howard</td><td class="text-secondary small">Hot/cold tracking, wheeling systems, pattern recognition</td></tr>
+                        <tr><td class="mono text-warning">3</td><td>Lotto: How to Wheel a Fortune</td><td>Gail Howard</td><td class="text-secondary small">Abbreviated wheels, key number wheels, coverage systems</td></tr>
+                        <tr><td class="mono text-warning">4</td><td>The Mathematics of Lottery</td><td>Catalin Barboianu</td><td class="text-secondary small">Formal probability, combinatorial design, covering theory</td></tr>
+                        <tr><td class="mono text-warning">5</td><td>Lottery Winning Strategies &amp; 70% Win Formula</td><td>Gail Howard</td><td class="text-secondary small">70% sum range rule, 9+5 selection/group tips</td></tr>
+                        <tr><td class="mono text-warning">6</td><td>AI and the Lottery: Defying Odds</td><td>Gary Covella</td><td class="text-secondary small">LSTM prediction, ensemble ML, Monte Carlo simulation</td></tr>
+                        <tr><td class="mono text-warning">7</td><td>Lottery: The Algorithm that Beat Chance</td><td>José Proaño</td><td class="text-secondary small">Mandel covering designs, expected value, syndicate strategy</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 1 -->
+    <h5 class="fw-bold mb-3 text-warning"><i class="bi bi-bar-chart me-2"></i>Tier 1 — Core Statistical Analysis</h5>
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M1</span> Frequency Analysis
+                    <small class="text-secondary ms-auto">Cardoza · Howard</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Tracks how often each number has been drawn across three time windows:</p>
+                    <ul class="mb-2">
+                        <li><strong class="text-primary">Short-term</strong> — last 10 drawings</li>
+                        <li><strong class="text-primary">Medium-term</strong> — last 30 drawings</li>
+                        <li><strong class="text-primary">Long-term</strong> — last 100 drawings</li>
+                    </ul>
+                    <p class="mb-0">Numbers are classified as <span class="text-danger">Hot</span> (top 20%), <span class="text-blue">Cold</span> (bottom 20%), or <span class="text-warning">Overdue</span>. Trend direction (Rising / Falling) is derived by comparing short-term vs. long-term rates. Output feeds the heatmap grid on the dashboard.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M2</span> Positional Analysis
+                    <small class="text-secondary ms-auto">Cardoza</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Each winning draw is sorted ascending. Module 2 builds a <strong class="text-primary">positional frequency matrix</strong>: how often each number appears in position 1, 2, 3 … 6 (Lotto) or 1–4 (Two Step) or 1–5 (Powerball).</p>
+                    <p class="mb-0">When generating picks, numbers are preferentially placed into their statistically strongest position. This is Cardoza's key innovation — it constrains the search space dramatically.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M3</span> Cluster &amp; Pair Analysis
+                    <small class="text-secondary ms-auto">Cardoza</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Counts how often every pair (i, j) appears in the same draw. Extends to triplets. Computes an <strong class="text-primary">Affinity Score</strong>: <span class="mono">pair_count / expected_count</span>. Values &gt; 1.5 = strong cluster.</p>
+                    <p class="mb-0"><strong class="text-danger">Anti-clusters</strong> are pairs that almost never appear together — these are excluded during pick generation. The pair network chart shows the top 20 pairs visually.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M4/5</span> Odd/Even &amp; High/Low Balance
+                    <small class="text-secondary ms-auto">Cardoza · Howard</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Filters picks to match historical distribution patterns. ~80% of Texas Lotto jackpots had a 3/3, 4/2, or 2/4 odd-to-even split. Combinations of 6/0 or 5/1 are penalized.</p>
+                    <p class="mb-0"><strong class="text-primary">High/Low:</strong> Texas Lotto splits at 28 — roughly equal high and low counts dominate winners. Same logic applied per game. Acts as a hard filter gate.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M6</span> Sum Range + 70% Rule
+                    <small class="text-secondary ms-auto">Howard</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>The sum of a 6-number pick from 1–54 can range from 21 (1+2+3+4+5+6) to 309 (49+50+51+52+53+54). But real winners cluster tightly in the middle.</p>
+                    <p class="mb-0"><strong class="text-primary">70% Rule:</strong> Gail Howard found that 70% of jackpot winners fall within the 15th–85th percentile of the historical sum distribution. Any generated pick outside this band is flagged and penalized in the composite score. This is a primary validation gate.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M7</span> Skip &amp; Hit Patterns
+                    <small class="text-secondary ms-auto">Cardoza</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>For each number, computes: <strong class="text-primary">average skip</strong> (mean draws between appearances), <strong class="text-primary">current skip</strong> (draws since last seen), and <strong class="text-primary">due score</strong>:</p>
+                    <p class="mono text-center my-2">due_score = current_skip / average_skip</p>
+                    <ul class="mb-0">
+                        <li>Due score &gt; 1.5 → <span class="text-warning">Overdue</span> — consider including</li>
+                        <li>Due score &lt; 0.5 → <span class="text-blue">Recently hit</span> — may cool off</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M8</span> Number Group Distribution
+                    <small class="text-secondary ms-auto">Cardoza · Howard</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Texas Lotto numbers are grouped into decades: 1–9, 10–19, 20–29, 30–39, 40–49, 50–54. Most jackpot winners span <strong class="text-primary">4–5 different groups</strong>.</p>
+                    <p class="mb-0">Picks that concentrate in only 1–2 groups (e.g., all numbers 30–39) are penalized. The pick generator enforces minimum group spread based on historical data.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-gold);color:#000">M9</span> Consecutive Number Analysis
+                    <small class="text-secondary ms-auto">Cardoza</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Calculates what percentage of historical winning draws contained at least one consecutive pair (e.g., 12 and 13 both drawn). And what percentage had two or more.</p>
+                    <p class="mb-0">This is used to calibrate the pick generator — it doesn't blindly avoid all consecutive pairs, but limits them to match the historical rate.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 2 -->
+    <h5 class="fw-bold mb-3 text-blue"><i class="bi bi-calculator me-2"></i>Tier 2 — Advanced Mathematical Analysis</h5>
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-4">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">M10</span> Probability Engine
+                    <small class="text-secondary ms-auto">Barboianu</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Implements Barboianu's formal lottery matrix model <span class="mono">L(n, k, p, t)</span> for exact combinatorial probability at every prize tier. Uses the hypergeometric formula:</p>
+                    <p class="mono text-center my-2">P = C(k,t) × C(n-k, p-t) / C(n,p)</p>
+                    <p class="mb-0">Outputs an exact odds table for Texas Lotto, Two Step, and Powerball. For multi-ticket plays, calculates how probability changes with N tickets.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">M11</span> Coverage Optimizer
+                    <small class="text-secondary ms-auto">Barboianu · Howard · Proaño</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Given a pool of N candidate numbers and a budget of M tickets, generates ticket sets that <strong class="text-primary">maximize pair coverage</strong> using a greedy algorithm.</p>
+                    <ul class="mb-0">
+                        <li><strong class="text-primary">Full Wheel</strong> — every combination</li>
+                        <li><strong class="text-primary">Abbreviated</strong> — budget-optimized subset</li>
+                        <li><strong class="text-primary">Key Number</strong> — fixed numbers on every ticket</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">M14</span> Expected Value Calculator
+                    <small class="text-secondary ms-auto">Barboianu · Proaño</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>Calculates EV per ticket at any jackpot level:</p>
+                    <p class="mono text-center my-2">EV = Σ(prize × probability) − cost</p>
+                    <p class="mb-0">Accounts for taxes, annuity discount, and jackpot-split probability at high amounts. Outputs a <span class="text-success">FAVORABLE</span> / <span class="text-warning">CONSIDER</span> / <span class="text-danger">HOLD</span> signal with a breakeven threshold.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 3 -->
+    <h5 class="fw-bold mb-3 text-purple"><i class="bi bi-robot me-2"></i>Tier 3 — Machine Learning &amp; AI</h5>
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-purple)">M12</span> LSTM Neural Network
+                    <small class="text-secondary ms-auto">Covella</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p>A <strong class="text-primary">Bidirectional LSTM</strong> (Long Short-Term Memory) model trained on sliding windows of 10–20 historical draws. Each draw is one-hot encoded. The network outputs a probability score for each number appearing in the next draw.</p>
+                    <p>Trained on 80% of data, validated on 20%. Models are saved to <span class="mono">ml_models/</span> and reused until new draws are uploaded.</p>
+                    <p class="mb-0 text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>Important: On truly random data, LSTM predictions converge toward uniform distribution. Value is in detecting short-term artifacts, not in predicting truly random outcomes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-purple)">M13</span> Ensemble ML + Monte Carlo
+                    <small class="text-secondary ms-auto">Covella</small>
+                </div>
+                <div class="card-body small text-secondary">
+                    <p><strong class="text-primary">Ensemble:</strong> Random Forest + Gradient Boosting trained on features (frequency, recency, positional strength, gap, momentum). Averaged with LSTM for final ML score.</p>
+                    <p><strong class="text-primary">Monte Carlo:</strong> Generates 100,000+ synthetic draws using historical frequency distributions. Numbers and combinations that appear most in simulations get a higher score.</p>
+                    <p class="mb-0">Monte Carlo acts as a validation layer — if a generated pick rarely appears in simulation, it is flagged for review.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 4-5 -->
+    <h5 class="fw-bold mb-3 text-emerald"><i class="bi bi-stars me-2"></i>Tier 4–5 — Pick Generation &amp; Jackpot Intelligence</h5>
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-3">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-emerald);color:#000">M15</span> Jackpot Monitor
+                </div>
+                <div class="card-body small text-secondary">
+                    Manual jackpot entry triggers real-time EV calculation. Tracks rollover streaks and cold-stretch numbers during the current rollover.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-emerald);color:#000">M16</span> Composite Scorer
+                </div>
+                <div class="card-body small text-secondary">
+                    Combines all module outputs into a single 0–100 score per number. Default weights: statistical 75%, ML/AI 25%. Weights are user-configurable via sliders.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-emerald);color:#000">M17</span> Pick Generator
+                </div>
+                <div class="card-body small text-secondary">
+                    Scores all numbers, assembles combinations, validates each against all filters (odd/even, high/low, sum range, group spread, anti-clusters). Outputs top 5–10 ranked picks.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold d-flex align-items-center gap-2">
+                    <span class="badge" style="background:var(--accent-emerald);color:#000">M18/19</span> Coverage + Risk
+                </div>
+                <div class="card-body small text-secondary">
+                    Organizes picks into wheeling structures. The always-visible Risk Transparency Panel shows true odds, expected return, and honest comparison to random quick picks.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Composite Score Weights -->
+    <div class="card card-le">
+        <div class="card-header fw-semibold"><i class="bi bi-sliders me-2 text-warning"></i>Composite Score — Default Weights</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-le table-sm mb-0">
+                    <thead><tr><th>Factor</th><th>Default Weight</th><th>Source Module</th></tr></thead>
+                    <tbody>
+                        <tr><td>Medium-term frequency</td><td class="mono text-warning">15%</td><td class="text-secondary">Module 1</td></tr>
+                        <tr><td>Positional strength</td><td class="mono text-warning">12%</td><td class="text-secondary">Module 2</td></tr>
+                        <tr><td>Cluster affinity</td><td class="mono text-warning">10%</td><td class="text-secondary">Module 3</td></tr>
+                        <tr><td>Due score</td><td class="mono text-warning">12%</td><td class="text-secondary">Module 7</td></tr>
+                        <tr><td>Trend momentum</td><td class="mono text-warning">8%</td><td class="text-secondary">Module 1</td></tr>
+                        <tr><td>Short-term heat</td><td class="mono text-warning">8%</td><td class="text-secondary">Module 1</td></tr>
+                        <tr><td>Group balance contribution</td><td class="mono text-warning">5%</td><td class="text-secondary">Module 8</td></tr>
+                        <tr><td>LSTM prediction score</td><td class="mono text-warning">10%</td><td class="text-secondary">Module 12</td></tr>
+                        <tr><td>Ensemble ML score</td><td class="mono text-warning">10%</td><td class="text-secondary">Module 13</td></tr>
+                        <tr><td>Monte Carlo frequency</td><td class="mono text-warning">5%</td><td class="text-secondary">Module 13</td></tr>
+                        <tr><td>Coverage value</td><td class="mono text-warning">5%</td><td class="text-secondary">Module 11</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

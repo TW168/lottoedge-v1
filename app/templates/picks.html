@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Generated Picks — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">Generate Picks</h2>
+    <p class="text-secondary mb-4">Configure strategy weights and generate optimised number combinations.</p>
+
+    <div class="row g-4">
+        <!-- Controls -->
+        <div class="col-lg-4">
+            <div class="card card-le">
+                <div class="card-header fw-semibold"><i class="bi bi-sliders me-2"></i>Strategy Settings</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Game</label>
+                        <select class="form-select form-select-le" id="gameSelect">
+                            <option value="lotto" {% if default_game == 'lotto' %}selected{% endif %}>Texas Lotto</option>
+                            <option value="twostep" {% if default_game == 'twostep' %}selected{% endif %}>Texas Two Step</option>
+                            <option value="powerball" {% if default_game == 'powerball' %}selected{% endif %}>Powerball</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Number of picks</label>
+                        <select class="form-select form-select-le" id="countSelect">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+
+                    <h6 class="text-uppercase fw-bold mb-3 mt-4" style="color: var(--accent-gold); font-size: 0.7rem; letter-spacing: 1px;">Module Weights</h6>
+
+                    {% set weight_fields = [
+                        ('weight_frequency', 'Frequency', 15),
+                        ('weight_positional', 'Positional', 12),
+                        ('weight_cluster', 'Cluster/Pairs', 10),
+                        ('weight_due_score', 'Due Score', 12),
+                        ('weight_momentum', 'Momentum', 8),
+                        ('weight_heat', 'Short-term Heat', 8),
+                        ('weight_group', 'Group Balance', 5),
+                        ('weight_lstm', 'ML/LSTM', 10),
+                        ('weight_ensemble', 'Ensemble ML', 10),
+                        ('weight_monte_carlo', 'Monte Carlo', 5),
+                        ('weight_coverage', 'Coverage', 5),
+                    ] %}
+
+                    {% for field, label, default in weight_fields %}
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <label class="form-label small text-secondary mb-0">{{ label }}</label>
+                            <span class="mono small" id="{{ field }}_val">{{ default }}</span>
+                        </div>
+                        <input type="range" class="form-range" id="{{ field }}" min="0" max="30" value="{{ default }}"
+                            oninput="document.getElementById('{{ field }}_val').textContent = this.value">
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-gold btn-lg" onclick="generatePicks()">
+                            <i class="bi bi-magic me-2"></i>Generate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick link to coverage builder -->
+            <div class="card card-le mt-3">
+                <div class="card-body text-center py-3">
+                    <p class="text-secondary small mb-2">Want to maximise coverage across multiple tickets?</p>
+                    <a href="/coverage" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-grid me-1"></i>Coverage Builder
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="col-lg-8">
+            <div id="picksResults">
+                <div class="card card-le text-center py-5">
+                    <div class="card-body">
+                        <i class="bi bi-magic display-4 text-secondary mb-3"></i>
+                        <p class="text-secondary">Configure settings and click Generate.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Transparency Panel (always visible after first generation) -->
+            <div id="riskPanel" class="card card-le mt-3" style="display:none;">
+                <div class="card-header fw-semibold" style="color: var(--accent-rose);">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Risk Transparency Panel
+                </div>
+                <div class="card-body">
+                    <div id="riskContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/picks.js"></script>
+{% endblock %}

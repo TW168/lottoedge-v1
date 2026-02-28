@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Jackpot Monitor — LottoEdge{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">Jackpot Monitor</h2>
+    <p class="text-secondary mb-4">Enter current jackpot amounts. The EV calculator updates immediately.</p>
+
+    <div class="row g-4">
+        <!-- Input form -->
+        <div class="col-lg-4">
+            <div class="card card-le">
+                <div class="card-header fw-semibold"><i class="bi bi-trophy me-2 text-warning"></i>Update Jackpot</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Game</label>
+                        <select class="form-select form-select-le" id="jpGame">
+                            <option value="lotto">Texas Lotto</option>
+                            <option value="twostep">Texas Two Step</option>
+                            <option value="powerball">Powerball</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Jackpot Amount ($)</label>
+                        <input type="number" class="form-control form-control-le" id="jpAmount" min="0" placeholder="e.g. 5000000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Next Draw Date</label>
+                        <input type="date" class="form-control form-control-le" id="jpDate">
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="jpAnnuity" checked>
+                            <label class="form-check-label small text-secondary" for="jpAnnuity">
+                                Advertised as annuity value (Powerball / Lotto)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-gold" onclick="updateJackpot()">
+                            <i class="bi bi-save me-2"></i>Update & Calculate EV
+                        </button>
+                    </div>
+                    <div id="jpStatus" class="mt-2 small"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current jackpots & EV -->
+        <div class="col-lg-8">
+            {% if jackpots %}
+            <div class="row g-3">
+                {% for jp in jackpots %}
+                <div class="col-md-6">
+                    <div class="card card-le">
+                        <div class="card-header fw-semibold">
+                            {{ {'lotto': 'Texas Lotto', 'twostep': 'Texas Two Step', 'powerball': 'Powerball'}[jp.game] }}
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary small">Jackpot</span>
+                                <span class="mono fw-bold text-warning">${{ "{:,.0f}".format(jp.amount) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary small">EV/ticket</span>
+                                <span class="mono small {% if jp.ev.ev < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    ${{ "%.4f"|format(jp.ev.ev) }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-secondary small">Breakeven</span>
+                                <span class="mono small text-secondary">${{ "{:,.0f}".format(jp.ev.breakeven_jackpot) }}</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="badge badge-signal-{{ jp.ev.signal.lower() }} fs-6 px-3 py-2">{{ jp.ev.signal }}</span>
+                            </div>
+                            {% if jp.next_draw_date %}
+                            <div class="mt-2 text-center">
+                                <small class="text-secondary">Next draw: {{ jp.next_draw_date }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card card-le text-center py-5">
+                <div class="card-body">
+                    <i class="bi bi-trophy display-4 text-secondary mb-3"></i>
+                    <p class="text-secondary">No jackpot data yet. Enter values using the form.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function updateJackpot() {
+    const game = document.getElementById('jpGame').value;
+    const amount = parseFloat(document.getElementById('jpAmount').value);
+    const date = document.getElementById('jpDate').value;
+    const annuity = document.getElementById('jpAnnuity').checked;
+    const statusEl = document.getElementById('jpStatus');
+
+    if (!amount || amount <= 0) {
+        statusEl.innerHTML = '<span class="text-danger">Enter a valid jackpot amount.</span>';
+        return;
+    }
+
+    statusEl.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Calculating...';
+
+    const payload = {
+        game,
+        amount,
+        next_draw_date: date || null,
+        is_annuity: annuity,
+    };
+
+    try {
+        const resp = await fetch('/api/jackpot/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        if (data.status === 'ok') {
+            statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Saved. Reloading...</span>';
+            setTimeout(() => location.reload(), 800);
+        }
+    } catch (e) {
+        statusEl.innerHTML = `<span class="text-danger">${e.message}</span>`;
+    }
+}
+</script>
+{% endblock %}
