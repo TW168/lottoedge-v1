@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-{% block title %}FAQ — LottoEdge{% endblock %}
+{% block title %}FAQ — Lotto Edge{% endblock %}
+{% block sidebar_col_class %}d-none{% endblock %}
+{% block content_col_class %}col-12{% endblock %}
 
 {% block content %}
 <div class="p-4">
     <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">
         <i class="bi bi-question-circle me-2 text-warning"></i>Frequently Asked Questions
     </h2>
-    <p class="text-secondary mb-4">Everything you need to know about using LottoEdge.</p>
+    <p class="text-secondary mb-4">Everything you need to know about using Lotto Edge.</p>
 
     <!-- General -->
     <h5 class="fw-bold mb-3 text-warning"><i class="bi bi-info-circle me-2"></i>General</h5>
@@ -15,12 +17,12 @@
         <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g1">
-                    Can LottoEdge guarantee lottery wins?
+                    Can Lotto Edge guarantee lottery wins?
                 </button>
             </h2>
             <div id="g1" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
                 <div class="accordion-body small text-secondary">
-                    <strong class="text-danger">No.</strong> No system can guarantee lottery wins. The lottery is a random, negative expected value game. LottoEdge applies statistical analysis and machine learning to help you make more informed selections, but each draw is statistically independent. The app is designed for educational purposes and entertainment. Always play within your budget.
+                    <strong class="text-danger">No.</strong> No system can guarantee lottery wins. The lottery is a random, negative expected value game. Lotto Edge applies statistical analysis and machine learning to help you make more informed selections, but each draw is statistically independent. The app is designed for educational purposes and entertainment. Always play within your budget.
                 </div>
             </div>
         </div>
@@ -28,12 +30,12 @@
         <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g2">
-                    Which games does LottoEdge support?
+                    Which games does Lotto Edge support?
                 </button>
             </h2>
             <div id="g2" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
                 <div class="accordion-body small text-secondary">
-                    LottoEdge supports three games:
+                    Lotto Edge supports three games:
                     <ul class="mt-2 mb-0">
                         <li><strong class="text-warning">Texas Lotto</strong> — Pick 6 from 1–54. Jackpot odds 1 in 25,827,165.</li>
                         <li><strong class="text-warning">Texas Two Step</strong> — Pick 4 from 1–35 + 1 Bonus Ball from 1–35. Jackpot odds 1 in 1,832,600.</li>
@@ -46,12 +48,12 @@
         <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#g3">
-                    Where does LottoEdge get its draw data?
+                    Where does Lotto Edge get its draw data?
                 </button>
             </h2>
             <div id="g3" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
                 <div class="accordion-body small text-secondary">
-                    LottoEdge does not fetch data automatically. You upload CSV files from the Texas Lottery website. Go to <strong>/upload</strong>, choose your game, and upload the CSV. The app parses the file, detects game eras, and stores all draws in a local SQLite database at <span class="mono">data/lottoedge.db</span>.
+                    Lotto Edge does not fetch data automatically. You upload CSV files from the Texas Lottery website. Go to <strong>/upload</strong>, choose your game, and upload the CSV. The app parses the file, detects game eras, and stores all draws in a local SQLite database at <span class="mono">data/lottoedge.db</span>.
                 </div>
             </div>
         </div>
@@ -267,14 +269,14 @@
         <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;margin-bottom:.5rem;">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-semibold" style="background:var(--bg-secondary);color:var(--text-primary);" type="button" data-bs-toggle="collapse" data-bs-target="#p4">
-                    Are LottoEdge picks better than random quick picks?
+                    Are Lotto Edge picks better than random quick picks?
                 </button>
             </h2>
             <div id="p4" class="accordion-collapse collapse" data-bs-parent="#faqPicks">
                 <div class="accordion-body small text-secondary">
                     <strong class="text-warning">Statistically, no.</strong> The Risk Transparency Panel on every picks page shows the true comparison — the probability of each match tier is nearly identical between a statistically generated pick and a random quick pick. The lottery is designed to be random, and no analysis method can overcome that fundamental fact.
                     <br><br>
-                    What LottoEdge <em>does</em> provide: a structured way to apply the strategies from seven published lottery books, avoid obviously unbalanced combinations, and make more deliberate choices if you choose to play.
+                    What Lotto Edge <em>does</em> provide: a structured way to apply the strategies from seven published lottery books, avoid obviously unbalanced combinations, and make more deliberate choices if you choose to play.
                 </div>
             </div>
         </div>
@@ -322,7 +324,7 @@
             </h2>
             <div id="j3" class="accordion-collapse collapse" data-bs-parent="#faqJackpot">
                 <div class="accordion-body small text-secondary">
-                    Go to the <strong>/jackpot</strong> page and enter the current jackpot amount manually. LottoEdge does not scrape jackpot data automatically — you enter the amount you see on the Texas Lottery website or on a ticket terminal. The EV calculator updates immediately.
+                    Go to the <strong>/jackpot</strong> page and enter the current jackpot amount manually. Lotto Edge does not scrape jackpot data automatically — you enter the amount you see on the Texas Lottery website or on a ticket terminal. The EV calculator updates immediately.
                 </div>
             </div>
         </div>
@@ -380,7 +382,7 @@
     <div class="alert mt-2" style="background:rgba(248,113,113,.08);border:1px solid var(--accent-rose);border-radius:10px;">
         <h6 class="fw-bold text-danger"><i class="bi bi-exclamation-octagon me-2"></i>Responsible Play Reminder</h6>
         <p class="small text-secondary mb-0">
-            LottoEdge is an educational and entertainment tool. Lottery draws are random events — statistical analysis cannot change the underlying odds or guarantee outcomes. The expected value of lottery play is negative at all normal jackpot levels. Set a fixed entertainment budget and never spend money you cannot afford to lose.
+            Lotto Edge is an educational and entertainment tool. Lottery draws are random events — statistical analysis cannot change the underlying odds or guarantee outcomes. The expected value of lottery play is negative at all normal jackpot levels. Set a fixed entertainment budget and never spend money you cannot afford to lose.
             If gambling is causing problems, contact the <strong>National Problem Gambling Helpline: 1-800-522-4700</strong>.
         </p>
     </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard — LottoEdge{% endblock %}
+{% block title %}Dashboard — Lotto Edge{% endblock %}
 
 {% block sidebar %}
 <div class="p-3">
@@ -99,7 +99,11 @@
         <div class="col-12">
             <div class="card card-le">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold"><i class="bi bi-fire me-2 text-warning"></i>Hot/Cold Heatmap</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-fire me-2 text-warning"></i>Hot/Cold Heatmap
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Each number is color-coded by how often it appeared in the last 30 draws. Red = Hot (top 20%), Blue = Cold (bottom 20%), Amber = Overdue (current gap > average gap), Purple = Neutral. Hover a number to see its exact stats."></i>
+                    </span>
                     <small class="text-secondary">Medium-term (last 30 draws)</small>
                 </div>
                 <div class="card-body">
@@ -118,7 +122,11 @@
         <div class="col-lg-7">
             <div class="card card-le h-100">
                 <div class="card-header">
-                    <span class="fw-semibold"><i class="bi bi-table me-2 text-info"></i>Positional Leaders</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-table me-2 text-info"></i>Positional Leaders
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Draws are sorted ascending. This table shows how often each number appears in position 1 (smallest), 2, 3 … up to 6. Top 5 leaders per position are highlighted. The pick generator places numbers into their strongest positions."></i>
+                    </span>
                 </div>
                 <div class="card-body p-0">
                     <div id="positionalTable" class="table-responsive">
@@ -132,7 +140,11 @@
         <div class="col-lg-5">
             <div class="card card-le h-100">
                 <div class="card-header">
-                    <span class="fw-semibold"><i class="bi bi-diagram-3 me-2 text-purple"></i>Top Pairs</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-diagram-3 me-2 text-purple"></i>Top Pairs
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="left"
+                           title="Counts how often each pair of numbers appears together in the same draw. Affinity score = actual count ÷ expected count. Score > 1.5 (red) = strong cluster. Pairs that never appear together are treated as anti-clusters and excluded from generated picks."></i>
+                    </span>
                 </div>
                 <div class="card-body">
                     <div id="pairsContainer">
@@ -150,7 +162,11 @@
         <div class="col-lg-6">
             <div class="card card-le h-100">
                 <div class="card-header">
-                    <span class="fw-semibold"><i class="bi bi-bar-chart me-2 text-warning"></i>Skip &amp; Hit (Due Score)</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-bar-chart me-2 text-warning"></i>Skip &amp; Hit (Due Score)
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Bars show how many draws have passed since each number last appeared (current skip). The red line is the average skip for that number. Due Score = current skip ÷ average skip. Score > 1.5 means the number is overdue; < 0.5 means it was drawn very recently."></i>
+                    </span>
                 </div>
                 <div class="card-body">
                     <canvas id="skipChart" height="200"></canvas>
@@ -160,7 +176,11 @@
         <div class="col-lg-6">
             <div class="card card-le h-100">
                 <div class="card-header">
-                    <span class="fw-semibold"><i class="bi bi-bar-chart-steps me-2 text-emerald"></i>Sum Distribution + 70% Band</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-bar-chart-steps me-2 text-emerald"></i>Sum Distribution + 70% Band
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="left"
+                           title="Histogram of the sum of all numbers in every historical winning draw. The green band marks the 15th–85th percentile (Gail Howard's 70% Rule). About 70% of jackpot winners fall within this range. Generated picks outside the band are penalized in the composite score."></i>
+                    </span>
                 </div>
                 <div class="card-body">
                     <canvas id="sumChart" height="200"></canvas>
@@ -174,7 +194,11 @@
         <div class="col-lg-6">
             <div class="card card-le h-100">
                 <div class="card-header">
-                    <span class="fw-semibold"><i class="bi bi-pie-chart me-2 text-blue"></i>Odd/Even &amp; High/Low Balance</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-pie-chart me-2 text-blue"></i>Odd/Even &amp; High/Low Balance
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="right"
+                           title="Shows how often each odd/even and high/low split pattern has appeared in historical jackpot wins. ~80% of Texas Lotto winners have a 3/3, 4/2, or 2/4 odd-to-even split. Combinations that are all-odd, all-even, or heavily skewed are filtered out during pick generation."></i>
+                    </span>
                 </div>
                 <div class="card-body">
                     <div id="balanceContainer">
@@ -188,7 +212,11 @@
         <div class="col-lg-6">
             <div class="card card-le h-100">
                 <div class="card-header">
-                    <span class="fw-semibold"><i class="bi bi-grid me-2 text-amber"></i>Number Group Distribution</span>
+                    <span class="fw-semibold">
+                        <i class="bi bi-grid me-2 text-amber"></i>Number Group Distribution
+                        <i class="bi bi-info-circle ms-2 text-secondary chart-info" data-bs-toggle="tooltip" data-bs-placement="left"
+                           title="Numbers are grouped into decade ranges (1–9, 10–19, 20–29, etc.). This chart shows how many times each group has contributed numbers to winning draws. Most jackpot winners span 4–5 different groups. Picks concentrated in only 1–2 groups are penalized."></i>
+                    </span>
                 </div>
                 <div class="card-body">
                     <canvas id="groupChart" height="200"></canvas>
@@ -214,6 +242,11 @@ function toggleEra2(checked) {
 
 // Load all analysis data on page load
 document.addEventListener('DOMContentLoaded', () => {
+    // Init Bootstrap tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+    });
+
     if ({{ 'true' if has_data else 'false' }}) {
         loadDashboard(GAME, INCLUDE_ERA2);
     }

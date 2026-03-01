@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Generated Picks — LottoEdge{% endblock %}
+{% block title %}Generated Picks — Lotto Edge{% endblock %}
 
 {% block content %}
 <div class="p-4">
@@ -32,23 +32,37 @@
                     <h6 class="text-uppercase fw-bold mb-3 mt-4" style="color: var(--accent-gold); font-size: 0.7rem; letter-spacing: 1px;">Module Weights</h6>
 
                     {% set weight_fields = [
-                        ('weight_frequency', 'Frequency', 15),
-                        ('weight_positional', 'Positional', 12),
-                        ('weight_cluster', 'Cluster/Pairs', 10),
-                        ('weight_due_score', 'Due Score', 12),
-                        ('weight_momentum', 'Momentum', 8),
-                        ('weight_heat', 'Short-term Heat', 8),
-                        ('weight_group', 'Group Balance', 5),
-                        ('weight_lstm', 'ML/LSTM', 10),
-                        ('weight_ensemble', 'Ensemble ML', 10),
-                        ('weight_monte_carlo', 'Monte Carlo', 5),
-                        ('weight_coverage', 'Coverage', 5),
+                        ('weight_frequency', 'Frequency', 15,
+                         'How often each number has appeared in the last 30 draws. Higher weight favours numbers that are currently drawing frequently.'),
+                        ('weight_positional', 'Positional', 12,
+                         'How often each number appears in a specific sorted position (1st-smallest, 2nd, … 6th). Higher weight places numbers in their historically strongest position.'),
+                        ('weight_cluster', 'Cluster/Pairs', 10,
+                         'Pair affinity — how often two numbers appear together. Higher weight favours numbers that co-occur frequently with other strong candidates.'),
+                        ('weight_due_score', 'Due Score', 12,
+                         'Current skip ÷ average skip. A score > 1.5 means the number is overdue. Higher weight favours numbers that have not been drawn for longer than usual.'),
+                        ('weight_momentum', 'Momentum', 8,
+                         'Rising trend: short-term frequency > long-term frequency. Higher weight favours numbers that are gaining draw frequency over time.'),
+                        ('weight_heat', 'Short-term Heat', 8,
+                         'How often the number appeared in just the last 10 draws. Higher weight favours numbers that are on a recent hot streak.'),
+                        ('weight_group', 'Group Balance', 5,
+                         'Decade group spread (1–9, 10–19, 20–29 …). Higher weight penalises picks that cluster in too few groups; most winners span 4–5 groups.'),
+                        ('weight_lstm', 'ML/LSTM', 10,
+                         'Machine learning ensemble score (Random Forest + Gradient Boosting). Trained on frequency, recency, and positional features from all historical draws.'),
+                        ('weight_ensemble', 'Ensemble ML', 10,
+                         'Secondary ensemble signal averaged with the primary ML model. Raising both ML weights increases reliance on the trained models vs. classical statistics.'),
+                        ('weight_monte_carlo', 'Monte Carlo', 5,
+                         'Frequency of each number across 100,000 simulated draws weighted by historical probabilities. Acts as a validation layer — rarely simulated numbers are flagged.'),
+                        ('weight_coverage', 'Coverage', 5,
+                         'Pair-coverage value of the number within the generated ticket set. Higher weight favours numbers that maximise unique pair coverage across all picks.'),
                     ] %}
 
-                    {% for field, label, default in weight_fields %}
+                    {% for field, label, default, tip in weight_fields %}
                     <div class="mb-2">
-                        <div class="d-flex justify-content-between mb-1">
-                            <label class="form-label small text-secondary mb-0">{{ label }}</label>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small text-secondary mb-0">
+                                {{ label }}
+                                <i class="bi bi-info-circle ms-1 chart-info" data-bs-toggle="tooltip" data-bs-placement="right" title="{{ tip }}"></i>
+                            </label>
                             <span class="mono small" id="{{ field }}_val">{{ default }}</span>
                         </div>
                         <input type="range" class="form-range" id="{{ field }}" min="0" max="30" value="{{ default }}"
@@ -102,4 +116,11 @@
 
 {% block scripts %}
 <script src="/static/js/picks.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+    });
+});
+</script>
 {% endblock %}

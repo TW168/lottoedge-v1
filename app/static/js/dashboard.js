@@ -1,4 +1,4 @@
-/* ─── LottoEdge Dashboard JS ──────────────────────────────────────────────── */
+/* ─── Lotto Edge Dashboard JS ──────────────────────────────────────────────── */
 
 const CHART_DEFAULTS = {
     color: '#e8eaed',

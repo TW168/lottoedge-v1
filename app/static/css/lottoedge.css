@@ -1,4 +1,4 @@
-/* ─── LottoEdge Custom Theme ────────────────────────────────────────────────── */
+/* ─── Lotto Edge Custom Theme ────────────────────────────────────────────────── */
 
 :root {
     --bg-primary:       #1a1d23;
@@ -387,3 +387,13 @@ canvas {
 .text-amber   { color: var(--accent-amber) !important; }
 .text-blue    { color: var(--accent-blue) !important; }
 .text-purple  { color: var(--accent-purple) !important; }
+
+/* ─── Chart info tooltip icon ─────────────────────────────────────────────── */
+.chart-info {
+    font-size: 0.75rem;
+    opacity: 0.55;
+    cursor: help;
+    vertical-align: middle;
+    transition: opacity 0.15s;
+}
+.chart-info:hover { opacity: 1; color: var(--accent-gold) !important; }

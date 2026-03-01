@@ -20,3 +20,8 @@ async def modules_page(request: Request):
 @router.get("/faq", response_class=HTMLResponse)
 async def faq_page(request: Request):
     return templates.TemplateResponse("faq.html", {"request": request})
+
+
+@router.get("/credits", response_class=HTMLResponse)
+async def credits_page(request: Request):
+    return templates.TemplateResponse("credits.html", {"request": request})

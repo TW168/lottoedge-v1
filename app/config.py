@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 ML_MODELS_DIR = BASE_DIR / "ml_models"
 
-APP_NAME = os.getenv("APP_NAME", "LottoEdge")
+APP_NAME = os.getenv("APP_NAME", "Lotto Edge")
 APP_ENV = os.getenv("APP_ENV", "development")
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR}/lottoedge.db")
 

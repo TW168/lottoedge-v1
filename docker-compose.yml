@@ -10,5 +10,5 @@ services:
       - ./ml_models:/app/ml_models
     environment:
       - APP_ENV=development
-      - APP_NAME=LottoEdge
+      - APP_NAME=Lotto Edge
     restart: unless-stopped

@@ -1,4 +1,4 @@
-/* ─── LottoEdge Picks Page JS ─────────────────────────────────────────────── */
+/* ─── Lotto Edge Picks Page JS ─────────────────────────────────────────────── */
 
 async function generatePicks() {
     const game = document.getElementById('gameSelect').value;
@@ -107,7 +107,7 @@ function renderRiskPanel(odds, game, panelEl) {
     const cost = { lotto: 1, twostep: 1, powerball: 2 }[game];
 
     let html = `<p class="text-secondary small mb-3">
-        Exact probabilities for <strong>${gameName}</strong>. These are identical whether you use LottoEdge picks or a random quick pick.
+        Exact probabilities for <strong>${gameName}</strong>. These are identical whether you use Lotto Edge picks or a random quick pick.
         The lottery is a negative expected value game.
     </p>`;
 
@@ -128,7 +128,7 @@ function renderRiskPanel(odds, game, panelEl) {
     html += `<div class="alert mt-3" style="background:rgba(248,113,113,.1);border:1px solid var(--accent-rose);border-radius:8px;">
         <i class="bi bi-exclamation-triangle me-2 text-danger"></i>
         <strong>Important:</strong> No statistical system can predict random lottery outcomes.
-        LottoEdge identifies historical patterns for entertainment and analysis purposes.
+        Lotto Edge identifies historical patterns for entertainment and analysis purposes.
         Never spend more than you can afford to lose.
     </div>`;
 

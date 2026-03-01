@@ -1,4 +1,4 @@
-"""LottoEdge — FastAPI application entry point."""
+"""Lotto Edge — FastAPI application entry point."""
 from contextlib import asynccontextmanager
 
 import numpy as np
@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="LottoEdge",
+    title="Lotto Edge",
     description="Texas Lottery Intelligence Platform",
     version="0.1.0",
     lifespan=lifespan,

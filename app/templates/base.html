@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LottoEdge{% endblock %}</title>
+    <title>{% block title %}Lotto Edge{% endblock %}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,12 +28,12 @@
 <div class="container-fluid px-0">
     <div class="row g-0">
         <!-- Sidebar -->
-        <div class="col-lg-2 sidebar d-none d-lg-block">
+        <div class="{% block sidebar_col_class %}col-lg-2 sidebar d-none d-lg-block{% endblock %}">
             {% block sidebar %}{% endblock %}
         </div>
 
         <!-- Main content -->
-        <div class="col-lg-10 main-content">
+        <div class="{% block content_col_class %}col-lg-10{% endblock %} main-content">
             {% block content %}{% endblock %}
         </div>
     </div>
@@ -42,7 +42,7 @@
 <!-- Footer -->
 <footer class="footer-disclaimer text-center py-3 mt-4">
     <small class="text-secondary">
-        LottoEdge applies statistical analysis for entertainment and educational purposes.
+        Lotto Edge applies statistical analysis for entertainment and educational purposes.
         The lottery is a random, negative expected value game. No system guarantees wins.
         Play within your budget.
     </small>
