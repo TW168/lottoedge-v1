@@ -1,10 +1,20 @@
 from datetime import date
-from sqlalchemy import create_engine, Column, Integer, String, Date, Boolean, Float, Text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    Float,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    create_engine,
+)
 from sqlalchemy.orm import DeclarativeBase, Session
 from app.config import DATABASE_URL
 
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL)
 
 
 class Base(DeclarativeBase):
@@ -14,6 +24,10 @@ class Base(DeclarativeBase):
 class Draw(Base):
     """Stores a single lottery drawing."""
     __tablename__ = "draws"
+    __table_args__ = (
+        # Prevent duplicate rows for the same game + draw date
+        UniqueConstraint("game", "draw_date", name="uq_draws_game_date"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     game = Column(String(20), index=True)  # lotto | twostep | powerball

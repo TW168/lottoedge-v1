@@ -12,13 +12,49 @@ ENCODERS_BY_TYPE[np.floating] = float
 ENCODERS_BY_TYPE[np.bool_] = bool
 ENCODERS_BY_TYPE[np.ndarray] = list
 
-from app.models.database import init_db
+from app.config import GAMES
+from app.models.database import Draw, get_session, init_db
 from app.routers import about, analysis, dashboard, jackpot, picks, upload
+from app.services.data_loader import (
+    load_powerball,
+    load_texas_lotto,
+    load_texas_two_step,
+    upsert_draws,
+)
+
+_LOADERS = {
+    "lotto": load_texas_lotto,
+    "twostep": load_texas_two_step,
+    "powerball": load_powerball,
+}
+
+
+def _auto_seed_db() -> None:
+    """Seed the database from CSV files in data/ if they exist and the
+    corresponding game table is empty.  Runs once at startup so users
+    never have to re-upload after a restart."""
+    from sqlalchemy.orm import Session as _Session
+
+    db: _Session = next(get_session())
+    for game, cfg in GAMES.items():
+        csv_path = cfg["csv_file"]
+        if not csv_path.exists():
+            continue
+        existing = db.query(Draw).filter(Draw.game == game).count()
+        if existing > 0:
+            continue  # already loaded — skip to avoid duplicates
+        try:
+            df = _LOADERS[game](csv_path)
+            upsert_draws(db, game, df)
+        except Exception as exc:  # noqa: BLE001
+            # Log but don't crash startup if a CSV is malformed
+            print(f"[LottoEdge] Auto-seed failed for {game}: {exc}")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    _auto_seed_db()
     yield
 
 
