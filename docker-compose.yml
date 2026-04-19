@@ -10,5 +10,6 @@ services:
       - ./ml_models:/app/ml_models
     environment:
       - APP_ENV=development
-      - APP_NAME=Lotto Edge
+      - APP_NAME=LottoEdge
+      - DATABASE_URL=${DATABASE_URL}
     restart: unless-stopped
