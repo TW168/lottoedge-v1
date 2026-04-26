@@ -152,9 +152,20 @@ def get_main_numbers(df: pd.DataFrame, game: str) -> pd.DataFrame:
     """
     Return a DataFrame with only the main number columns as a list per row.
     Each row gets a 'numbers' column containing a sorted list.
+    For era2 lotto draws, n6 is a bonus ball — exclude it from main numbers.
     """
     if game == "lotto":
-        cols = ["n1", "n2", "n3", "n4", "n5", "n6"]
+        # Era2 draws: n6 is the bonus ball, not a 6th main number.
+        # Only include n6 for non-era2 rows.
+        def _lotto_nums(row):
+            nums = [row["n1"], row["n2"], row["n3"], row["n4"], row["n5"]]
+            if not row.get("is_bonus_era", False) and pd.notna(row.get("n6")):
+                nums.append(row["n6"])
+            return sorted([int(x) for x in nums if pd.notna(x)])
+
+        result = df.copy()
+        result["numbers"] = result.apply(_lotto_nums, axis=1)
+        return result
     elif game == "twostep":
         cols = ["n1", "n2", "n3", "n4"]
     else:  # powerball
