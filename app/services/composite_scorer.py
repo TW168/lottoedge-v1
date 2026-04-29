@@ -1,8 +1,7 @@
 """Module 16: Composite Scoring Engine — combine all module scores into 0–100 per number."""
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass

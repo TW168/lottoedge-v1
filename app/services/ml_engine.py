@@ -17,7 +17,6 @@ def _build_features(df: pd.DataFrame, game: str, pool: list[int]) -> tuple[np.nd
         - positional average
     """
     from app.services.data_loader import get_main_numbers
-    from app.services.frequency import _compute_skips
 
     df = get_main_numbers(df, game)
     draws = df["numbers"].tolist()
@@ -63,11 +62,6 @@ def train_ensemble(df: pd.DataFrame, game: str) -> dict:
 
     scaler = MinMaxScaler()
     X_scaled = scaler.fit_transform(X)
-
-    # Class balance
-    pos = y.sum()
-    neg = len(y) - pos
-    ratio = neg / pos if pos > 0 else 1
 
     rf = RandomForestClassifier(
         n_estimators=100, max_depth=6, class_weight="balanced", random_state=42, n_jobs=-1

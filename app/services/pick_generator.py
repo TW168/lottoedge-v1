@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import random
-from itertools import combinations
 
 import pandas as pd
 
@@ -11,7 +10,7 @@ from app.services.cluster import is_anti_cluster
 from app.services.composite_scorer import ScoringWeights, compute_composite_scores
 from app.services.consecutive import passes_consecutive_filter
 from app.services.group_dist import passes_group_filter
-from app.services.sum_range import passes_sum_gate, score_sum
+from app.services.sum_range import passes_sum_gate
 
 _PICK = {"lotto": 6, "twostep": 4, "powerball": 5}
 _POOL = {"lotto": 54, "twostep": 35, "powerball": 69}
@@ -22,8 +21,8 @@ def generate_picks(
     df: pd.DataFrame,
     game: str,
     count: int = 5,
-    include_era2: bool = False,
     weights: ScoringWeights | None = None,
+    diversity_level: int = 60,
     precomputed: dict | None = None,
 ) -> list[dict]:
     """
@@ -74,11 +73,21 @@ def generate_picks(
     # Use top 20 candidates; expand if we can't fill `count` valid combos
     candidate_size = max(20, pick * 4)
     candidates = ranked[:candidate_size]
+    number_usage: dict[int, int] = {n: 0 for n in candidates}
+    diversity_level = _clamp_int(diversity_level, 0, 100)
+    max_overlap = _max_allowed_overlap(game, pick, diversity_level)
 
     while len(results) < count and attempts < max_attempts:
         attempts += 1
-        # Sample pick numbers from candidates, weighted by composite score
-        weights_list = [composite.get(n, 1) for n in candidates]
+        # Penalize heavily reused numbers so generated tickets have wider coverage.
+        weights_list = [
+            _diversified_weight(
+                composite.get(n, 1),
+                number_usage.get(n, 0),
+                diversity_level,
+            )
+            for n in candidates
+        ]
         total_w = sum(weights_list)
         probs = [w / total_w for w in weights_list]
 
@@ -91,12 +100,21 @@ def generate_picks(
         if combo in seen_combos:
             continue
 
+        # Avoid near-duplicate tickets (for lotto: no 5/6 overlap; target <= 3 shared).
+        overlap_cap = max_overlap
+        if attempts > max_attempts // 2:
+            overlap_cap += 1
+        if any(_overlap_count(combo, tuple(r["numbers"])) > overlap_cap for r in results):
+            continue
+
         # Validate
         passes, notes = _validate(list(combo), game, sum_data, anti_pairs)
         if not passes and attempts < max_attempts // 2:
             continue  # Try again first half; relax in second half
 
         seen_combos.add(combo)
+        for num in combo:
+            number_usage[num] = number_usage.get(num, 0) + 1
         combo_score = round(sum(composite.get(n, 0) for n in combo) / pick, 2)
 
         from app.services.balance import analyze_balance
@@ -162,6 +180,31 @@ def _weighted_sample(candidates: list[int], k: int, probs: list[float]) -> list[
     p = np.array(probs)
     p /= p.sum()
     return [int(x) for x in np.random.choice(candidates, size=k, replace=False, p=p)]
+
+
+def _diversified_weight(base_weight: float, usage_count: int, diversity_level: int) -> float:
+    """Reduce weight for numbers already used in prior generated tickets."""
+    penalty_factor = 0.25 + (1.25 * (diversity_level / 100.0))
+    return max(1e-6, base_weight / (1.0 + (penalty_factor * usage_count)))
+
+
+def _overlap_count(a: tuple[int, ...], b: tuple[int, ...]) -> int:
+    """Count shared numbers between two picks."""
+    return len(set(a).intersection(b))
+
+
+def _max_allowed_overlap(game: str, pick_size: int, diversity_level: int) -> int:
+    """Return overlap cap between generated tickets for each game."""
+    # Higher diversity level means lower overlap cap.
+    relax = round((100 - diversity_level) / 35)
+    if game in {"lotto", "powerball"}:
+        return max(2, (pick_size - 3) + relax)
+    return max(1, (pick_size - 2) + relax)
+
+
+def _clamp_int(value: int, low: int, high: int) -> int:
+    """Clamp integer values to a configured inclusive range."""
+    return max(low, min(high, int(value)))
 
 
 def _get_bonus_freq(df: pd.DataFrame, game: str) -> dict[int, int]:

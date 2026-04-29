@@ -1,7 +1,6 @@
 """Module 13: Monte Carlo Simulation using historical frequency distributions."""
 from __future__ import annotations
 
-import random
 from collections import Counter
 
 import numpy as np

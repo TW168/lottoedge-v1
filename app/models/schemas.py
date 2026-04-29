@@ -31,6 +31,7 @@ class PickRequest(BaseModel):
     game: str
     count: int = 5
     include_era2: bool = False
+    diversity_level: int = 60
     # Module weights (0–100, normalized internally)
     weight_frequency: int = 15
     weight_positional: int = 12

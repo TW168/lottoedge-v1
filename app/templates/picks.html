@@ -29,6 +29,22 @@
                         </select>
                     </div>
 
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small text-secondary mb-0">
+                                Diversity Level
+                                <i class="bi bi-info-circle ms-1 chart-info" data-bs-toggle="tooltip" data-bs-placement="right" title="Controls how much generated tickets avoid repeating the same numbers. Higher values spread numbers wider across picks."></i>
+                            </label>
+                            <span class="mono small" id="diversity_level_val">60</span>
+                        </div>
+                        <input type="range" class="form-range" id="diversity_level" min="0" max="100" value="60"
+                            oninput="document.getElementById('diversity_level_val').textContent = this.value">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-secondary">Conservative</small>
+                            <small class="text-secondary">Aggressive spread</small>
+                        </div>
+                    </div>
+
                     <h6 class="text-uppercase fw-bold mb-3 mt-4" style="color: var(--accent-gold); font-size: 0.7rem; letter-spacing: 1px;">Module Weights</h6>
 
                     {% set weight_fields = [

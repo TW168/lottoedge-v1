@@ -18,6 +18,7 @@ async function generatePicks() {
         game,
         count,
         include_era2: false,
+        diversity_level: parseInt(document.getElementById('diversity_level').value),
         weight_frequency:   parseInt(document.getElementById('weight_frequency').value),
         weight_positional:  parseInt(document.getElementById('weight_positional').value),
         weight_cluster:     parseInt(document.getElementById('weight_cluster').value),

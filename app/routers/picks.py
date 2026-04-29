@@ -41,7 +41,13 @@ async def generate(payload: PickRequest, db: Session = Depends(get_session)):
         coverage=payload.weight_coverage,
     )
 
-    picks = generate_picks(df, payload.game, count=payload.count, weights=weights)
+    picks = generate_picks(
+        df,
+        payload.game,
+        count=payload.count,
+        weights=weights,
+        diversity_level=payload.diversity_level,
+    )
     odds = get_odds(payload.game)
 
     return {
