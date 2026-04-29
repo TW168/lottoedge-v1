@@ -49,6 +49,11 @@
                             <i class="bi bi-grid-3x3 me-2"></i>Build Wheel
                         </button>
                     </div>
+                    <div class="d-grid mt-2">
+                        <button class="btn btn-outline-secondary" onclick="autoPredictPool()">
+                            <i class="bi bi-magic me-2"></i>Auto Predict Pool
+                        </button>
+                    </div>
                     <div id="cvStatus" class="mt-2 small"></div>
                 </div>
             </div>
@@ -141,6 +146,75 @@ async function buildCoverage() {
         renderCoverageResults(data, game);
     } catch (e) {
         resultsEl.innerHTML = `<div class="alert alert-danger">Error: ${e.message}</div>`;
+    }
+}
+
+async function autoPredictPool() {
+    const game = document.getElementById('cvGame').value;
+    const statusEl = document.getElementById('cvStatus');
+    const numbersEl = document.getElementById('cvNumbers');
+
+    const pickSize = { lotto: 6, twostep: 4, powerball: 5 }[game];
+    const targetPoolSize = { lotto: 10, twostep: 7, powerball: 9 }[game];
+
+    statusEl.innerHTML = '<span class="text-secondary">Running prediction engine...</span>';
+
+    const payload = {
+        game,
+        count: 10,
+        include_era2: false,
+        diversity_level: 70,
+        weight_frequency: 15,
+        weight_positional: 12,
+        weight_cluster: 10,
+        weight_due_score: 12,
+        weight_momentum: 8,
+        weight_heat: 8,
+        weight_group: 5,
+        weight_lstm: 10,
+        weight_ensemble: 10,
+        weight_monte_carlo: 5,
+        weight_coverage: 5,
+    };
+
+    try {
+        const resp = await fetch('/api/picks/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+
+        if (data.error) {
+            statusEl.innerHTML = `<span class="text-danger">${data.error}</span>`;
+            return;
+        }
+
+        const rank = new Map();
+        data.picks.forEach((pick, idx) => {
+            const rankBoost = data.picks.length - idx;
+            pick.numbers.forEach((n) => {
+                const current = rank.get(n) || 0;
+                rank.set(n, current + rankBoost);
+            });
+        });
+
+        const predicted = [...rank.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, targetPoolSize)
+            .map(([n]) => n)
+            .sort((a, b) => a - b);
+
+        if (predicted.length < pickSize) {
+            statusEl.innerHTML = '<span class="text-danger">Prediction returned too few numbers. Try again.</span>';
+            return;
+        }
+
+        numbersEl.value = predicted.join(', ');
+        updatePoolInfo();
+        statusEl.innerHTML = `<span class="text-success">Predicted pool loaded: ${predicted.join(', ')}</span>`;
+    } catch (e) {
+        statusEl.innerHTML = `<span class="text-danger">Prediction error: ${e.message}</span>`;
     }
 }
 
