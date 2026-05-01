@@ -91,6 +91,8 @@ def compute_frequency(df: pd.DataFrame, game: str) -> dict:
 
 
 def _get_pool(game: str) -> list[int]:
+    if game == "cash5":
+        return list(range(1, 36))
     if game == "lotto":
         return list(range(1, 55))
     if game == "twostep":

@@ -85,6 +85,27 @@ POWERBALL_TIERS = [
 ]
 
 
+# ── Texas Cash Five odds ──────────────────────────────────────────────────────
+
+CASH5_TIERS = [
+    {"match": 5, "prize": "Jackpot", "fixed_amount": None},
+    {"match": 4, "prize": "$500", "fixed_amount": 500},
+    {"match": 3, "prize": "$20", "fixed_amount": 20},
+]
+
+
+def cash5_odds() -> list[dict]:
+    """Texas Cash Five exact odds for 5/35 game structure."""
+    n, k = 35, 5
+    tiers = []
+    for tier in CASH5_TIERS:
+        t = tier["match"]
+        prob = lottery_probability(n, k, k, t)
+        odds = round(1 / prob) if prob > 0 else None
+        tiers.append({**tier, "probability": prob, "odds": f"1 in {odds:,}" if odds else "N/A"})
+    return tiers
+
+
 def powerball_odds() -> list[dict]:
     n_white, k_white = 69, 5
     n_pb = 26
@@ -106,6 +127,8 @@ def powerball_odds() -> list[dict]:
 # ── Convenience dispatcher ─────────────────────────────────────────────────────
 
 def get_odds(game: str) -> list[dict]:
+    if game == "cash5":
+        return cash5_odds()
     if game == "lotto":
         return lotto_odds()
     if game == "twostep":

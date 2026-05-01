@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import DATA_DIR
 from app.models.database import get_session
 from app.services.data_loader import (
+    load_texas_cash_five,
     load_powerball,
     load_texas_lotto,
     load_texas_two_step,
@@ -17,12 +18,14 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 _LOADERS = {
+    "cash5": load_texas_cash_five,
     "lotto": load_texas_lotto,
     "twostep": load_texas_two_step,
     "powerball": load_powerball,
 }
 
 _FILENAMES = {
+    "cash5": "texas_cash_five.csv",
     "lotto": "texas_lotto.csv",
     "twostep": "texas_two_step.csv",
     "powerball": "powerball.csv",

@@ -11,7 +11,9 @@ ML_MODELS_DIR = BASE_DIR / "ml_models"
 
 APP_NAME = os.getenv("APP_NAME", "Lotto Edge")
 APP_ENV = os.getenv("APP_ENV", "development")
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR}/lottoedge.db")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/lottoedge"
+)
 
 # Ensure data directory exists
 DATA_DIR.mkdir(exist_ok=True)
@@ -19,6 +21,12 @@ ML_MODELS_DIR.mkdir(exist_ok=True)
 
 # Game identifiers
 GAMES = {
+    "cash5": {
+        "name": "Texas Cash Five",
+        "pick": 5,
+        "pool": 35,
+        "csv_file": DATA_DIR / "texas_cash_five.csv",
+    },
     "lotto": {
         "name": "Texas Lotto",
         "pick": 6,

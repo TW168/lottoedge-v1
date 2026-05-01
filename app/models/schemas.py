@@ -57,3 +57,27 @@ class GeneratedPick(BaseModel):
     high_count: int
     passes_sum_gate: bool
     filter_notes: list[str]
+
+
+class CashFivePredictionRequest(BaseModel):
+    window: int = 120
+    monte_carlo_samples: int = 5000
+    jackpot: float = 100000.0
+    ticket_cost: float = 1.0
+    weight_frequency: float = 1.0
+    weight_hot_cold: float = 1.0
+    weight_gap: float = 1.0
+    weight_markov: float = 1.0
+    weight_monte_carlo: float = 1.0
+    weight_pattern: float = 1.0
+
+
+class CashFivePredictionResponse(BaseModel):
+    game: str
+    top_numbers: list[int]
+    alternate_numbers: list[int]
+    confidence_score: float
+    split_risk_score: float
+    ev_before_split: float
+    ev_after_split: float
+    disclaimer: str

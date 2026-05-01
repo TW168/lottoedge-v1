@@ -53,7 +53,7 @@
             </h2>
             <div id="g3" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
                 <div class="accordion-body small text-secondary">
-                    Lotto Edge does not fetch data automatically. You upload CSV files from the Texas Lottery website. Go to <strong>/upload</strong>, choose your game, and upload the CSV. The app parses the file, detects game eras, and stores all draws in a local SQLite database at <span class="mono">data/lottoedge.db</span>.
+                    Lotto Edge does not fetch data automatically. You upload CSV files from the Texas Lottery website. Go to <strong>/upload</strong>, choose your game, and upload the CSV. The app parses the file, detects game eras, and stores all draws in PostgreSQL via <span class="mono">DATABASE_URL</span>.
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
             </h2>
             <div id="g4" class="accordion-collapse collapse" data-bs-parent="#faqGeneral">
                 <div class="accordion-body small text-secondary">
-                    <strong class="text-success">No.</strong> All draw history, jackpot entries, and settings are stored in <span class="mono">data/lottoedge.db</span> — a file on your disk that persists across restarts. The only way to lose data is to delete that file or the <span class="mono">data/</span> folder.
+                    <strong class="text-success">No.</strong> All draw history, jackpot entries, and settings are stored in PostgreSQL. Your data persists across restarts as long as the configured database remains available and intact.
                 </div>
             </div>
         </div>

@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Initial setup
 uv init
-uv add fastapi "uvicorn[standard]" jinja2 python-multipart pandas numpy scipy scikit-learn tensorflow aiosqlite sqlalchemy python-dotenv
+uv add fastapi "uvicorn[standard]" jinja2 python-multipart pandas numpy scipy scikit-learn tensorflow asyncpg sqlalchemy python-dotenv psycopg2-binary
 
 # Run locally (no Docker)
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -35,7 +35,7 @@ This project is built incrementally in 6 phases:
 
 | Phase | Scope |
 |-------|-------|
-| 1 | FastAPI skeleton, Bootstrap 5 theme, CSV upload/parsing, SQLite, base layout |
+| 1 | FastAPI skeleton, Bootstrap 5 theme, CSV upload/parsing, PostgreSQL, base layout |
 | 2 | Analysis Modules 1–9 (statistical: frequency, positional, cluster, balance, sum, skip, group, consecutive) |
 | 3 | Modules 10–11, 14 (probability engine, coverage optimizer, EV calculator + jackpot monitor) |
 | 4 | Modules 12–13 (LSTM, Random Forest/XGBoost ensemble, Monte Carlo) |
@@ -79,7 +79,7 @@ generates optimized number combinations.
 | **Charts** | Chart.js or Plotly.js |
 | **Data Processing** | pandas, numpy, scipy |
 | **ML/AI** | scikit-learn, TensorFlow/Keras (LSTM) |
-| **Database** | SQLite (local) — upgrade to PostgreSQL if needed |
+| **Database** | PostgreSQL |
 
 ### Project Structure
 
@@ -97,7 +97,7 @@ lottoedge/
 │   ├── config.py                   # settings, env vars
 │   ├── models/
 │   │   ├── __init__.py
-│   │   ├── database.py             # SQLite/SQLAlchemy models
+│   │   ├── database.py             # PostgreSQL/SQLAlchemy models
 │   │   └── schemas.py              # Pydantic schemas
 │   ├── routers/
 │   │   ├── __init__.py
@@ -845,7 +845,8 @@ dependencies = [
     "scipy>=1.13.0",
     "scikit-learn>=1.5.0",
     "tensorflow>=2.16.0",
-    "aiosqlite>=0.20.0",
+    "asyncpg>=0.30.0",
+    "psycopg2-binary>=2.9.0",
     "sqlalchemy>=2.0.0",
     "python-dotenv>=1.0.0",
 ]
@@ -1018,7 +1019,7 @@ docker-compose up --build
 1. FastAPI app skeleton with Jinja2 templates
 2. Bootstrap 5 theme with custom CSS (color palette, typography)
 3. CSV upload and parsing (both games, era detection)
-4. SQLite storage for parsed draw data
+4. PostgreSQL storage for parsed draw data
 5. Base dashboard layout with sidebar + main content area
 
 **Phase 2 — Core Analysis (Modules 1–9):**

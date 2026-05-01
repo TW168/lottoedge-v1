@@ -69,6 +69,22 @@ def load_texas_two_step(filepath: str | Path) -> pd.DataFrame:
     return df.sort_values("draw_date").reset_index(drop=True)
 
 
+def load_texas_cash_five(filepath: str | Path) -> pd.DataFrame:
+    """
+    Load Texas Cash Five CSV.
+    Columns: Game Name, Month, Day, Year, Num1-Num5
+    """
+    df = pd.read_csv(
+        filepath,
+        header=None,
+        names=["game", "month", "day", "year", "n1", "n2", "n3", "n4", "n5"],
+    )
+    df["draw_date"] = pd.to_datetime(df[["year", "month", "day"]]).dt.date
+    df["era"] = "era1"
+    df["is_bonus_era"] = False
+    return df.sort_values("draw_date").reset_index(drop=True)
+
+
 def load_powerball(filepath: str | Path) -> pd.DataFrame:
     """
     Load Powerball CSV with era detection.
@@ -168,6 +184,8 @@ def get_main_numbers(df: pd.DataFrame, game: str) -> pd.DataFrame:
         return result
     elif game == "twostep":
         cols = ["n1", "n2", "n3", "n4"]
+    elif game == "cash5":
+        cols = ["n1", "n2", "n3", "n4", "n5"]
     else:  # powerball
         cols = ["n1", "n2", "n3", "n4", "n5"]
 

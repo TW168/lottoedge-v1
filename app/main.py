@@ -5,6 +5,9 @@ import numpy as np
 from fastapi import FastAPI
 from fastapi.encoders import ENCODERS_BY_TYPE
 from fastapi.staticfiles import StaticFiles
+from slowapi.errors import RateLimitExceeded
+from slowapi.extension import _rate_limit_exceeded_handler
+from slowapi.middleware import SlowAPIMiddleware
 
 # Teach FastAPI's JSON encoder to handle numpy scalar types
 ENCODERS_BY_TYPE[np.integer] = int
@@ -13,9 +16,11 @@ ENCODERS_BY_TYPE[np.bool_] = bool
 ENCODERS_BY_TYPE[np.ndarray] = list
 
 from app.config import GAMES
+from app.core.rate_limiter import limiter
 from app.models.database import Draw, get_session, init_db
-from app.routers import about, analysis, dashboard, jackpot, picks, upload
+from app.routers import about, analysis, dashboard, jackpot, picks, predictions, upload
 from app.services.data_loader import (
+    load_texas_cash_five,
     load_powerball,
     load_texas_lotto,
     load_texas_two_step,
@@ -23,6 +28,7 @@ from app.services.data_loader import (
 )
 
 _LOADERS = {
+    "cash5": load_texas_cash_five,
     "lotto": load_texas_lotto,
     "twostep": load_texas_two_step,
     "powerball": load_powerball,
@@ -65,6 +71,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(dashboard.router)
@@ -72,4 +82,5 @@ app.include_router(upload.router)
 app.include_router(picks.router)
 app.include_router(jackpot.router)
 app.include_router(analysis.router)
+app.include_router(predictions.router)
 app.include_router(about.router)

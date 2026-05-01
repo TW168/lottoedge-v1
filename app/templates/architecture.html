@@ -51,7 +51,7 @@
                                     <li><span class="text-primary">scipy</span> — statistics</li>
                                     <li><span class="text-primary">scikit-learn</span> — Random Forest, GBM</li>
                                     <li><span class="text-primary">TensorFlow/Keras</span> — LSTM model</li>
-                                    <li><span class="text-primary">SQLite</span> — persistent storage</li>
+                                    <li><span class="text-primary">PostgreSQL</span> — persistent storage</li>
                                 </ul>
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                         <div class="col-12">
                             <div class="p-3 rounded text-center" style="background:rgba(52,211,153,.08);border:1px solid var(--accent-emerald);">
                                 <div class="fw-semibold text-emerald mb-1"><i class="bi bi-database me-2"></i>Layer 4 — Data</div>
-                                <div class="small text-secondary">SQLite (<span class="mono">data/lottoedge.db</span>) · SQLAlchemy ORM · CSV upload parser · ML model storage (<span class="mono">ml_models/</span>)</div>
+                                <div class="small text-secondary">PostgreSQL (<span class="mono">DATABASE_URL</span>) · SQLAlchemy ORM · CSV upload parser · ML model storage (<span class="mono">ml_models/</span>)</div>
                             </div>
                         </div>
                     </div>
@@ -147,7 +147,7 @@
 │   ├── services/         <span class="text-primary"># 19 modules</span>
 │   ├── templates/        <span class="text-primary"># Jinja2 HTML</span>
 │   └── static/           <span class="text-primary"># CSS / JS / img</span>
-├── data/                 <span class="text-primary"># SQLite + CSVs</span>
+├── data/                 <span class="text-primary"># CSV inputs</span>
 ├── ml_models/            <span class="text-primary"># Trained models</span>
 └── tests/                <span class="text-primary"># pytest suite</span></pre>
                 </div>
@@ -159,7 +159,7 @@
                 <div class="card-body">
                     <ol class="small text-secondary ps-3" style="line-height:2">
                         <li><strong class="text-primary">CSV Upload</strong> — User uploads Texas Lotto, Two Step, or Powerball CSV via <span class="mono">/upload</span></li>
-                        <li><strong class="text-primary">Parsing</strong> — <span class="mono">data_loader.py</span> detects game eras, normalizes columns, stores rows in SQLite</li>
+                        <li><strong class="text-primary">Parsing</strong> — <span class="mono">data_loader.py</span> detects game eras, normalizes columns, stores rows in PostgreSQL</li>
                         <li><strong class="text-primary">Analysis Request</strong> — Browser calls <span class="mono">/api/analysis/{game}</span></li>
                         <li><strong class="text-primary">Service Pipeline</strong> — Router invokes all 19 modules in sequence against the DB data</li>
                         <li><strong class="text-primary">Composite Score</strong> — Each number receives a 0–100 score from weighted module outputs</li>

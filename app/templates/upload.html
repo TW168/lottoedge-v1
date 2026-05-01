@@ -7,6 +7,7 @@
     <p class="text-secondary mb-4">Upload CSV files downloaded from the Texas Lottery website. Era detection is automatic.</p>
 
     {% for game_id, game_name, description in [
+        ('cash5', 'Texas Cash Five', 'Pick 5 from 1-35. Single consistent format.'),
         ('lotto', 'Texas Lotto', 'Pick 6 from 1–54. Handles Era 1 (1992–2003), Era 2 (2003–2006, Pick 5+Bonus), Era 3 (2006–present).'),
         ('twostep', 'Texas Two Step', 'Pick 4 + Bonus Ball from 1–35. Single consistent format.'),
         ('powerball', 'Powerball', 'Pick 5 + Powerball. Handles era changes from Feb 2010 to present.')

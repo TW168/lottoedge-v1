@@ -66,6 +66,23 @@ class JackpotHistory(Base):
     notes = Column(Text, nullable=True)
 
 
+class CashFivePredictionRun(Base):
+    """Stores Cash Five prediction outputs for audit and analysis."""
+    __tablename__ = "cash5_prediction_runs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    created_on = Column(Date, index=True)
+    top_numbers = Column(String(64))
+    alternate_numbers = Column(String(64), nullable=True)
+    confidence_score = Column(Float)
+    split_risk_score = Column(Float)
+    ev_before_split = Column(Float)
+    ev_after_split = Column(Float)
+    jackpot = Column(Float)
+    ticket_cost = Column(Float, default=1.0)
+    model_version = Column(String(32), default="cash5-v1")
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 

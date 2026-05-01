@@ -4,6 +4,7 @@ from math import comb
 import pytest
 
 from app.services.probability import (
+    cash5_odds,
     get_odds,
     lotto_odds,
     lottery_probability,
@@ -49,3 +50,9 @@ def test_probabilities_sum_less_than_one():
 def test_lottery_probability_zero_for_impossible():
     # Can't match 7 when only 6 drawn
     assert lottery_probability(54, 6, 6, 7) == 0.0
+
+
+def test_cash5_jackpot_odds():
+    tiers = cash5_odds()
+    jackpot = next(t for t in tiers if t["match"] == 5)
+    assert jackpot["odds"] == "1 in 324,632"
