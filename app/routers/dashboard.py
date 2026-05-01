@@ -16,6 +16,7 @@ GAMES = [
     {"id": "lotto",     "name": "Texas Lotto"},
     {"id": "twostep",   "name": "Texas Two Step"},
     {"id": "powerball", "name": "Powerball"},
+    {"id": "cash5",     "name": "Cash Five"},
 ]
 
 
