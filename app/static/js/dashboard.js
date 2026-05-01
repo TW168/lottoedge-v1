@@ -61,7 +61,7 @@ function renderHeatmap(freqData, game) {
     if (!container || !freqData) return;
 
     container.innerHTML = '';
-    const poolMax = game === 'lotto' ? 54 : game === 'twostep' ? 35 : 69;
+    const poolMax = game === 'lotto' ? 54 : game === 'twostep' ? 35 : game === 'cash5' ? 35 : 69;
 
     for (let n = 1; n <= poolMax; n++) {
         const fd = freqData[n] || {};
@@ -148,7 +148,7 @@ function renderSkipChart(freqData, game) {
     const canvas = document.getElementById('skipChart');
     if (!canvas || !freqData) return;
 
-    const poolMax = game === 'lotto' ? 54 : game === 'twostep' ? 35 : 69;
+    const poolMax = game === 'lotto' ? 54 : game === 'twostep' ? 35 : game === 'cash5' ? 35 : 69;
     const labels = [], currentSkips = [], avgSkips = [];
 
     // Show top 20 by due score

@@ -88,8 +88,8 @@ def is_anti_cluster(a: int, b: int, anti_pairs: list[dict]) -> bool:
 
 
 def _pick_count(game: str) -> int:
-    return {"lotto": 6, "twostep": 4, "powerball": 5}[game]
+    return {"lotto": 6, "twostep": 4, "powerball": 5, "cash5": 5}[game]
 
 
 def _pool_size(game: str) -> int:
-    return {"lotto": 54, "twostep": 35, "powerball": 69}[game]
+    return {"lotto": 54, "twostep": 35, "powerball": 69, "cash5": 35}[game]

@@ -8,12 +8,14 @@ _ODD_EVEN_PREFERRED = {
     "lotto":     [(3, 3), (4, 2), (2, 4)],
     "twostep":   [(2, 2), (3, 1), (1, 3)],
     "powerball": [(3, 2), (2, 3), (4, 1), (1, 4)],
+    "cash5":     [(3, 2), (2, 3), (4, 1), (1, 4)],
 }
 
 _HIGH_SPLIT = {
     "lotto":     28,   # High = 28-54, Low = 1-27
     "twostep":   18,   # High = 18-35, Low = 1-17
     "powerball": 35,   # High = 35-69, Low = 1-34
+    "cash5":     18,   # High = 18-35, Low = 1-17
 }
 
 

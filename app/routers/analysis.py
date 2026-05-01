@@ -17,7 +17,7 @@ from app.services.data_loader import count_draws, get_draws_df
 
 router = APIRouter(prefix="/api")
 
-VALID_GAMES = {"lotto", "twostep", "powerball"}
+VALID_GAMES = {"lotto", "twostep", "powerball", "cash5"}
 
 
 def _require_game(game: str):

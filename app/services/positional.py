@@ -46,12 +46,12 @@ def positional_score(num: int, position: int, matrix: dict) -> float:
 
 
 def _pick_count(game: str) -> int:
-    return {"lotto": 6, "twostep": 4, "powerball": 5}[game]
+    return {"lotto": 6, "twostep": 4, "powerball": 5, "cash5": 5}[game]
 
 
 def _get_pool(game: str) -> list[int]:
     if game == "lotto":
         return list(range(1, 55))
-    if game == "twostep":
+    if game in ("twostep", "cash5"):
         return list(range(1, 36))
     return list(range(1, 70))
