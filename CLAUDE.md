@@ -50,9 +50,9 @@ This project is built incrementally in 6 phases:
 
 **LottoEdge** is a data-driven lottery analysis platform implementing strategies from six
 authoritative lottery books, purpose-built for **Texas Lotto** (6/54), **Texas Two Step**
-(4/35 + bonus ball), and **Powerball** (5/69 + 1/26). This is not a random number picker —
-it is a multi-layered statistical and machine learning engine that scores, filters, and
-generates optimized number combinations.
+(4/35 + bonus ball), **Powerball** (5/69 + 1/26), and **Texas Cash Five** (5/35).
+This is not a random number picker — it is a multi-layered statistical and machine learning
+engine that scores, filters, and generates optimized number combinations.
 
 ### Source Books (Strategy Foundation)
 
@@ -105,7 +105,12 @@ lottoedge/
 │   │   ├── analysis.py             # analysis API endpoints
 │   │   ├── picks.py                # pick generation endpoints
 │   │   ├── upload.py               # CSV upload handling
-│   │   └── jackpot.py              # jackpot monitor routes
+│   │   ├── jackpot.py              # jackpot monitor routes
+│   │   ├── cash5.py                # Cash Five page route
+│   │   └── predictions.py          # Cash Five prediction API
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── rate_limiter.py         # slowapi Limiter instance
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── data_loader.py          # CSV parsing, era detection
@@ -123,7 +128,8 @@ lottoedge/
 │   │   ├── monte_carlo.py          # Module 13: Monte Carlo simulation
 │   │   ├── expected_value.py       # Module 14: EV calculator
 │   │   ├── composite_scorer.py     # Master scoring engine
-│   │   └── pick_generator.py       # Filtered pick generation
+│   │   ├── pick_generator.py       # Filtered pick generation
+│   │   └── cash5_predictor.py      # Cash Five 7-algorithm prediction engine
 │   ├── templates/
 │   │   ├── base.html               # Bootstrap 5 base layout
 │   │   ├── dashboard.html          # Main analysis dashboard
@@ -154,7 +160,8 @@ lottoedge/
 ├── data/
 │   ├── texas_lotto.csv             # User uploaded
 │   ├── texas_two_step.csv          # User uploaded
-│   └── powerball.csv               # User uploaded
+│   ├── powerball.csv               # User uploaded
+│   └── texas_cash_five.csv         # User uploaded
 ├── ml_models/
 │   └── .gitkeep                    # Trained model storage
 └── tests/
@@ -162,7 +169,8 @@ lottoedge/
     ├── test_data_loader.py
     ├── test_frequency.py
     ├── test_probability.py
-    └── test_pick_generator.py
+    ├── test_pick_generator.py
+    └── test_cash5_predictor.py     # Cash Five algorithm tests
 ```
 
 ---
@@ -294,6 +302,41 @@ independent tracks (separate pools, separate draws). The 5 white balls use the
 full analysis pipeline (frequency, positional, cluster, balance, etc.). The
 Powerball number uses a simplified pipeline (frequency, skip/hit, due score only)
 since it's a single number from a smaller pool.
+
+### Texas Cash Five
+
+| Parameter | Value |
+|-----------|-------|
+| Pick | 5 numbers |
+| Pool | 1–35 |
+| Drawings | Every day, 10:12 PM CT |
+| Bonus Ball | None |
+| Jackpot Start | $25,000 (auto-pari-mutuel) |
+| Odds (Jackpot) | 1 in 324,632 |
+
+**CSV Columns:** `Game Name, Month, Day, Year, Num1, Num2, Num3, Num4, Num5`
+
+**Single consistent format** — no era changes. Numbers are sorted ascending.
+
+**Cash Five Prediction Engine (`cash5_predictor.py`):**
+Seven algorithms each produce a ranked list of candidate numbers. The ensemble
+endpoint merges them with configurable weights into a final top-5 pick plus alternates.
+
+| Algorithm | Function | Description |
+|-----------|----------|-------------|
+| 1 | `frequency_analysis` | Chi-square test vs. uniform distribution; overweights underrepresented numbers |
+| 2 | `hot_cold_numbers` | Rolling-window deviation from expected rate; positive = hot |
+| 3 | `gap_analysis` | Flags numbers whose current gap exceeds `mean + 1σ` as overdue |
+| 4 | `markov_chain` | 35×35 transition matrix; scores numbers likely to follow last draw |
+| 5 | `monte_carlo` | Weighted empirical sampling over N simulations; frequency of appearance |
+| 6 | `pattern_recognition` | Scores based on historical odd/even, high/low, consecutive, and sum patterns |
+| 7 | `ensemble_predict` | Weighted vote across all six algorithms; outputs picks + split-risk + EV |
+
+**Split-Risk Score (0–100):** Estimates co-winner probability based on number popularity
+(birthday-range numbers 1–31 increase risk). Higher score = more likely to split jackpot.
+
+**EV-after-split:** Expected value per ticket adjusted for the probability of sharing
+the jackpot at the current jackpot level.
 
 ---
 
