@@ -31,6 +31,10 @@ class EnsembleWeights:
 def _extract_draws(df: pd.DataFrame) -> list[list[int]]:
     """Extract sorted Cash Five combinations from draw DataFrame rows.
 
+    Numbers outside the valid pool (1–35) are silently dropped so that draws
+    from other games stored in the same table cannot corrupt analysis functions.
+    Rows that do not yield exactly five valid numbers after filtering are skipped.
+
     Args:
         df: Draw history with number columns n1-n5.
 
@@ -39,8 +43,13 @@ def _extract_draws(df: pd.DataFrame) -> list[list[int]]:
     """
     draws: list[list[int]] = []
     for _, row in df.iterrows():
-        nums = [int(row["n1"]), int(row["n2"]), int(row["n3"]), int(row["n4"]), int(row["n5"])]
-        draws.append(sorted(nums))
+        nums = [
+            int(row[col])
+            for col in ("n1", "n2", "n3", "n4", "n5")
+            if POOL_MIN <= int(row[col]) <= POOL_MAX
+        ]
+        if len(nums) == PICK_SIZE:
+            draws.append(sorted(nums))
     return draws
 
 
