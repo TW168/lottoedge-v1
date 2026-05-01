@@ -18,7 +18,7 @@ ENCODERS_BY_TYPE[np.ndarray] = list
 from app.config import GAMES
 from app.core.rate_limiter import limiter
 from app.models.database import Draw, get_session, init_db
-from app.routers import about, analysis, dashboard, jackpot, picks, predictions, upload
+from app.routers import about, analysis, cash5, dashboard, jackpot, picks, predictions, upload
 from app.services.data_loader import (
     load_texas_cash_five,
     load_powerball,
@@ -79,6 +79,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(dashboard.router)
 app.include_router(upload.router)
+app.include_router(cash5.router)
 app.include_router(picks.router)
 app.include_router(jackpot.router)
 app.include_router(analysis.router)

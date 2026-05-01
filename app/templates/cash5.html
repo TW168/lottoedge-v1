@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Cash Five Predictions — Lotto Edge{% endblock %}
+{% block sidebar_col_class %}d-none{% endblock %}
+{% block content_col_class %}col-12{% endblock %}
+
+{% block content %}
+<div class="p-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">
+                <i class="bi bi-dice-5 me-2 text-warning"></i>Texas Cash Five Predictor
+            </h2>
+            <p class="text-secondary mb-0">Ensemble prediction using frequency, hot/cold, gap, Markov, Monte Carlo, and pattern models.</p>
+        </div>
+        <a href="/upload" class="btn btn-outline-secondary">
+            <i class="bi bi-cloud-upload me-2"></i>Upload Cash Five CSV
+        </a>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-4">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-sliders me-2 text-warning"></i>Prediction Settings
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Rolling Window</label>
+                        <input id="window" type="number" class="form-control form-control-le" min="10" max="1000" value="120">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Monte Carlo Samples</label>
+                        <input id="simulations" type="number" class="form-control form-control-le" min="100" max="200000" value="5000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Jackpot ($)</label>
+                        <input id="jackpot" type="number" class="form-control form-control-le" min="1000" step="1000" value="100000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Ticket Cost ($)</label>
+                        <input id="ticket_cost" type="number" class="form-control form-control-le" min="0.5" step="0.5" value="1">
+                    </div>
+                    <div class="d-grid">
+                        <button id="runPredictionBtn" type="button" class="btn btn-gold">
+                            <i class="bi bi-magic me-2"></i>Run Ensemble Prediction
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card card-le h-100">
+                <div class="card-header fw-semibold">
+                    <i class="bi bi-graph-up-arrow me-2 text-emerald"></i>Ensemble Output
+                </div>
+                <div class="card-body" id="predictionResult">
+                    <div class="text-secondary">Run a prediction to view top picks, split-risk score, and EV-after-split.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-le">
+        <div class="card-header fw-semibold">
+            <i class="bi bi-clock-history me-2 text-info"></i>Recent Cash Five Draw History
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-le table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Numbers</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cash5HistoryBody">
+                        <tr><td colspan="2" class="text-center text-secondary py-3">Loading history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadCash5History() {
+    const body = document.getElementById('cash5HistoryBody');
+    try {
+        const resp = await fetch('/api/cash5/history?limit=25');
+        const data = await resp.json();
+        if (!data.draws || data.draws.length === 0) {
+            body.innerHTML = '<tr><td colspan="2" class="text-center text-secondary py-3">No Cash Five history yet. Upload and insert draws first.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = data.draws.map((row) => {
+            const badges = row.numbers.map((n) => `<span class="number-badge">${n}</span>`).join(' ');
+            return `<tr><td class="mono">${row.draw_date}</td><td>${badges}</td></tr>`;
+        }).join('');
+    } catch (e) {
+        body.innerHTML = `<tr><td colspan="2" class="text-center text-danger py-3">Failed to load history: ${e.message}</td></tr>`;
+    }
+}
+
+async function runCash5Prediction() {
+    const btn = document.getElementById('runPredictionBtn');
+    const result = document.getElementById('predictionResult');
+
+    const payload = {
+        window: Number(document.getElementById('window').value),
+        monte_carlo_samples: Number(document.getElementById('simulations').value),
+        jackpot: Number(document.getElementById('jackpot').value),
+        ticket_cost: Number(document.getElementById('ticket_cost').value),
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+
+    try {
+        const resp = await fetch('/api/predictions/ensemble', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) {
+            throw new Error(data.detail || 'Prediction request failed');
+        }
+
+        const top = data.top_numbers.map((n) => `<span class="number-badge number-badge-hot">${n}</span>`).join(' ');
+        const alt = data.alternate_numbers.map((n) => `<span class="number-badge">${n}</span>`).join(' ');
+
+        result.innerHTML = `
+            <div class="mb-3">
+                <h5 class="mb-2 text-warning">Top 5 Numbers</h5>
+                <div>${top}</div>
+            </div>
+            <div class="mb-3">
+                <h6 class="mb-2 text-secondary">Alternate Numbers</h6>
+                <div>${alt}</div>
+            </div>
+            <div class="row g-2 mb-3">
+                <div class="col-md-4"><div class="p-2 rounded" style="background:var(--bg-tertiary)"><small class="text-secondary d-block">Confidence</small><span class="mono fw-bold">${data.confidence_score.toFixed(2)}%</span></div></div>
+                <div class="col-md-4"><div class="p-2 rounded" style="background:var(--bg-tertiary)"><small class="text-secondary d-block">Split-risk</small><span class="mono fw-bold">${data.split_risk_score.toFixed(2)}</span></div></div>
+                <div class="col-md-4"><div class="p-2 rounded" style="background:var(--bg-tertiary)"><small class="text-secondary d-block">EV after split</small><span class="mono fw-bold">$${data.ev_after_split.toFixed(4)}</span></div></div>
+            </div>
+            <div class="small text-secondary">${data.disclaimer}</div>
+        `;
+    } catch (e) {
+        result.innerHTML = `<div class="text-danger">${e.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-magic me-2"></i>Run Ensemble Prediction';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadCash5History();
+    document.getElementById('runPredictionBtn').addEventListener('click', runCash5Prediction);
+});
+</script>
+{% endblock %}
