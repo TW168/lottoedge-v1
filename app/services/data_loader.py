@@ -186,6 +186,14 @@ def get_main_numbers(df: pd.DataFrame, game: str) -> pd.DataFrame:
         cols = ["n1", "n2", "n3", "n4"]
     elif game == "cash5":
         cols = ["n1", "n2", "n3", "n4", "n5"]
+        result = df.copy()
+        result["numbers"] = result[cols].apply(
+            lambda row: sorted([int(x) for x in row if pd.notna(x) and 1 <= int(x) <= 35]),
+            axis=1,
+        )
+        # Drop rows that don't have exactly 5 valid numbers (bad/mixed data)
+        result = result[result["numbers"].apply(len) == 5].reset_index(drop=True)
+        return result
     else:  # powerball
         cols = ["n1", "n2", "n3", "n4", "n5"]
 

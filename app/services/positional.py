@@ -22,7 +22,7 @@ def compute_positional(df: pd.DataFrame, game: str) -> dict:
     matrix = {pos: {num: 0 for num in pool} for pos in range(1, pick + 1)}
 
     for nums in df["numbers"]:
-        sorted_nums = sorted(nums)
+        sorted_nums = [n for n in sorted(nums) if n in pool]
         for pos, num in enumerate(sorted_nums, start=1):
             if pos <= pick:
                 matrix[pos][num] += 1
