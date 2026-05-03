@@ -59,24 +59,38 @@ def add_cash5_history(
 
     existing = db.query(Draw).filter(Draw.game == "cash5", Draw.draw_date == draw_date).first()
     if existing is not None:
-        raise HTTPException(status_code=409, detail="Draw for this date already exists.")
+        # Update in place instead of rejecting — matches the shared upsert_draws
+        # behaviour so manual insertions and CSV uploads are consistent.
+        existing.n1, existing.n2, existing.n3, existing.n4, existing.n5 = (
+            numbers[0], numbers[1], numbers[2], numbers[3], numbers[4],
+        )
+        row = existing
+        updated = True
+    else:
+        row = Draw(
+            game="cash5",
+            draw_date=draw_date,
+            n1=numbers[0],
+            n2=numbers[1],
+            n3=numbers[2],
+            n4=numbers[3],
+            n5=numbers[4],
+            era="era1",
+            is_bonus_era=False,
+        )
+        db.add(row)
+        updated = False
 
-    row = Draw(
-        game="cash5",
-        draw_date=draw_date,
-        n1=numbers[0],
-        n2=numbers[1],
-        n3=numbers[2],
-        n4=numbers[3],
-        n5=numbers[4],
-        era="era1",
-        is_bonus_era=False,
-    )
-    db.add(row)
     db.commit()
     db.refresh(row)
 
-    return {"id": row.id, "game": row.game, "draw_date": row.draw_date, "numbers": numbers}
+    return {
+        "id": row.id,
+        "game": row.game,
+        "draw_date": row.draw_date,
+        "numbers": numbers,
+        "updated": updated,
+    }
 
 
 @router.get(
@@ -184,7 +198,7 @@ def prediction_gap(request: Request, db: Session = Depends(get_session)):
 def prediction_markov(request: Request, db: Session = Depends(get_session)):
     df = _load_cash5_df(db)
     draws = cash5_predictor._extract_draws(df)
-    result = cash5_predictor.markov_chain_analysis(draws)
+    result = cash5_predictor.markov_chain_analysis(draws)  # window default=200
     return {"game": "cash5", "result": result, "disclaimer": DISCLAIMER}
 
 
@@ -201,7 +215,7 @@ def prediction_monte_carlo(
 ):
     df = _load_cash5_df(db)
     draws = cash5_predictor._extract_draws(df)
-    result = cash5_predictor.monte_carlo_analysis(draws, simulations=simulations)
+    result = cash5_predictor.monte_carlo_analysis(draws, simulations=simulations)  # window default=0 (full history)
     return {"game": "cash5", "result": result, "disclaimer": DISCLAIMER}
 
 

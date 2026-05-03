@@ -134,3 +134,40 @@ def test_predict_from_dataframe(
     )
     assert result["game"] == "cash5"
     assert len(result["top_numbers"]) == 5
+
+
+def test_markov_scores_are_not_all_equal(
+    synthetic_cash5_draws: list[list[int]],
+):
+    """Markov scores must be non-uniform after the new-arrivals-only fix."""
+    result = markov_chain_analysis(synthetic_cash5_draws, window=200)
+    scores = list(result["scores"].values())
+    assert len(set(round(s, 4) for s in scores)) > 1, (
+        "All Markov scores are equal — transition matrix is still uniform"
+    )
+
+
+def test_monte_carlo_window_uses_recent_draws(
+    synthetic_cash5_draws: list[list[int]],
+):
+    """Monte Carlo with a short window must differ from full-history run."""
+    full = monte_carlo_analysis(synthetic_cash5_draws, simulations=2000, window=0)
+    recent = monte_carlo_analysis(synthetic_cash5_draws, simulations=2000, window=50)
+    # Scores need not be identical — if they are, the window had no effect.
+    # With only 50 draws the frequency distribution should differ from the full 1200.
+    full_scores = list(full["scores"].values())
+    recent_scores = list(recent["scores"].values())
+    assert full_scores != recent_scores, (
+        "Monte Carlo window parameter had no effect on sampling probabilities"
+    )
+
+
+def test_pattern_recognition_has_sum_fields(
+    synthetic_cash5_draws: list[list[int]],
+):
+    """Pattern recognition must now expose mean_sum and ideal_contribution."""
+    result = pattern_recognition_analysis(synthetic_cash5_draws)
+    assert "mean_sum" in result
+    assert "ideal_contribution" in result
+    # Ideal contribution should sit near the middle of the 1-35 pool
+    assert 8.0 <= result["ideal_contribution"] <= 28.0

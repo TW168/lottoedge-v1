@@ -196,7 +196,9 @@ def gap_analysis(draws: list[list[int]]) -> dict[str, Any]:
     }
 
 
-def markov_chain_analysis(draws: list[list[int]], alpha: float = 1.0) -> dict[str, Any]:
+def markov_chain_analysis(
+    draws: list[list[int]], alpha: float = 1.0, window: int = 200
+) -> dict[str, Any]:
     """Build a transition matrix and score next-draw likelihoods.
 
     Mathematical basis:
@@ -204,20 +206,36 @@ def markov_chain_analysis(draws: list[list[int]], alpha: float = 1.0) -> dict[st
         (count(i -> j) + alpha) / (row_total(i) + alpha * 35),
         where alpha is Laplace smoothing for sparse rows.
 
+        Only transitions to numbers that are NEW in draw t+1 (i.e., not present
+        in draw t) are counted.  Counting every-to-every combo×combo transitions
+        produces a near-uniform matrix because each draw pair contributes 5*5=25
+        increments spread almost evenly across rows; restricting to new arrivals
+        reduces noise and lets recent sequential patterns emerge.
+
+        A recency window (default 200 draws) is applied so that older, potentially
+        non-representative draws do not dilute recent structure.
+
     Args:
         draws: Historical Cash Five combinations.
         alpha: Laplace smoothing value.
+        window: Number of most-recent draw pairs to include. 0 = all history.
 
     Returns:
         Transition matrix, last draw, and normalized per-number predictions.
     """
+    recent = draws[-window:] if window > 0 and len(draws) > window else draws
     matrix = np.zeros((POOL_MAX, POOL_MAX), dtype=float)
 
-    for idx in range(len(draws) - 1):
-        current = draws[idx]
-        nxt = draws[idx + 1]
-        for i in current:
-            for j in nxt:
+    for idx in range(len(recent) - 1):
+        current_set = set(recent[idx])
+        nxt = recent[idx + 1]
+        # Only count transitions to numbers that are new in the next draw.
+        # This makes the matrix discriminating: it models "given i appeared, which
+        # previously-absent number j tended to emerge next?" rather than re-counting
+        # numbers that simply repeated, which would push every row toward uniform.
+        new_in_next = [j for j in nxt if j not in current_set]
+        for i in current_set:
+            for j in new_in_next:
                 matrix[i - 1, j - 1] += 1.0
 
     row_sums = matrix.sum(axis=1, keepdims=True)
@@ -241,22 +259,30 @@ def markov_chain_analysis(draws: list[list[int]], alpha: float = 1.0) -> dict[st
     }
 
 
-def monte_carlo_analysis(draws: list[list[int]], simulations: int = 5000) -> dict[str, Any]:
+def monte_carlo_analysis(
+    draws: list[list[int]], simulations: int = 5000, window: int = 0
+) -> dict[str, Any]:
     """Generate candidate tickets by weighted Monte Carlo simulation.
 
     Mathematical basis:
         Numbers are sampled without replacement using empirical probabilities
         estimated from historical frequency counts.
 
+        An optional recency window restricts probability estimation to the most
+        recent N draws.  Previously the full history was always used, which could
+        over-weight numbers that were hot years ago but are cold now.
+
     Args:
         draws: Historical Cash Five combinations.
         simulations: Number of synthetic tickets to generate.
+        window: If > 0, estimate sampling probabilities from the last N draws only.
 
     Returns:
         Candidate ticket samples, per-number frequencies, and normalized scores.
     """
+    source = draws[-window:] if window > 0 and len(draws) > window else draws
     counts = Counter()
-    for combo in draws:
+    for combo in source:
         counts.update(combo)
 
     total = sum(counts.values())
@@ -290,9 +316,15 @@ def pattern_recognition_analysis(draws: list[list[int]]) -> dict[str, Any]:
     """Learn dominant historical composition patterns and score numbers.
 
     Mathematical basis:
-        This model estimates common odd-count and low-count distributions from
-        historical draws. Numbers are scored by how often they help satisfy
-        the dominant composition constraints.
+        This model estimates common odd-count, low-count, and sum-range
+        distributions from historical draws.  Numbers are scored by how well
+        they satisfy the three dominant composition constraints.
+
+        Sum-range signal: the historical mean sum is computed.  Each number is
+        scored by its proximity to the ideal per-position contribution
+        (mean_sum / PICK_SIZE), rewarding numbers in the middle of the pool
+        that keep combo sums in the typical winning band.  This mirrors
+        Howard's 70% rule applied at the individual-number level.
 
     Args:
         draws: Historical Cash Five combinations.
@@ -300,9 +332,10 @@ def pattern_recognition_analysis(draws: list[list[int]]) -> dict[str, Any]:
     Returns:
         Dominant pattern summary and normalized per-number pattern scores.
     """
-    odd_counter = Counter()
-    low_counter = Counter()
-    consecutive_counter = Counter()
+    odd_counter: Counter = Counter()
+    low_counter: Counter = Counter()
+    consecutive_counter: Counter = Counter()
+    sums: list[float] = []
 
     for combo in draws:
         odd_count = sum(1 for n in combo if n % 2 == 1)
@@ -311,20 +344,34 @@ def pattern_recognition_analysis(draws: list[list[int]]) -> dict[str, Any]:
         odd_counter[odd_count] += 1
         low_counter[low_count] += 1
         consecutive_counter[consecutive_count] += 1
+        sums.append(float(sum(combo)))
 
     dominant_odd = odd_counter.most_common(1)[0][0] if odd_counter else 3
     dominant_low = low_counter.most_common(1)[0][0] if low_counter else 2
+
+    # Ideal per-number contribution to keep the combo sum in the historical mean band.
+    mean_sum = float(np.mean(sums)) if sums else float((POOL_MIN + POOL_MAX) * PICK_SIZE / 2)
+    ideal_contribution = mean_sum / PICK_SIZE
+    # Furthest any number can be from the ideal contribution (used for normalization).
+    max_distance = max(
+        abs(POOL_MIN - ideal_contribution),
+        abs(POOL_MAX - ideal_contribution),
+    ) or 1.0
 
     raw_scores: dict[int, float] = {}
     for num in range(1, 36):
         odd_match = dominant_odd / PICK_SIZE if num % 2 == 1 else (PICK_SIZE - dominant_odd) / PICK_SIZE
         low_match = dominant_low / PICK_SIZE if num <= 17 else (PICK_SIZE - dominant_low) / PICK_SIZE
-        raw_scores[num] = (odd_match + low_match) / 2.0
+        # Sum proximity: 1.0 when exactly at ideal contribution, 0.0 at farthest extreme.
+        sum_match = 1.0 - abs(num - ideal_contribution) / max_distance
+        raw_scores[num] = (odd_match + low_match + sum_match) / 3.0
 
     return {
         "dominant_odd_count": dominant_odd,
         "dominant_low_count": dominant_low,
         "dominant_consecutive_pairs": consecutive_counter.most_common(1)[0][0] if consecutive_counter else 1,
+        "mean_sum": round(mean_sum, 2),
+        "ideal_contribution": round(ideal_contribution, 2),
         "scores": _normalize_scores(raw_scores),
     }
 
@@ -426,8 +473,8 @@ def ensemble_predict(
     freq = frequency_analysis(draws)
     hot = hot_cold_analysis(draws, window=window)
     gap = gap_analysis(draws)
-    markov = markov_chain_analysis(draws)
-    mc = monte_carlo_analysis(draws, simulations=monte_carlo_samples)
+    markov = markov_chain_analysis(draws, window=window)
+    mc = monte_carlo_analysis(draws, simulations=monte_carlo_samples, window=window)
     pattern = pattern_recognition_analysis(draws)
 
     weight_values = {
