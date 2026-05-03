@@ -103,38 +103,70 @@ def load_powerball(filepath: str | Path) -> pd.DataFrame:
 
 # ── DB import ──────────────────────────────────────────────────────────────────
 
-def upsert_draws(db: Session, game: str, df: pd.DataFrame) -> int:
-    """Insert new draws into DB, skip duplicates. Returns count inserted."""
-    existing = {
-        r.draw_date
-        for r in db.query(Draw.draw_date).filter(Draw.game == game).all()
+def upsert_draws(db: Session, game: str, df: pd.DataFrame) -> dict[str, int]:
+    """Insert new draws into DB and update existing dates if values changed."""
+    existing_by_date = {
+        r.draw_date: r
+        for r in db.query(Draw).filter(Draw.game == game).all()
     }
 
     rows = []
+    updated = 0
+
+    tracked_fields = [
+        "n1",
+        "n2",
+        "n3",
+        "n4",
+        "n5",
+        "n6",
+        "bonus",
+        "power_play",
+        "era",
+        "is_bonus_era",
+    ]
+
     for _, row in df.iterrows():
-        if row["draw_date"] in existing:
+        row_date = row["draw_date"]
+        existing_row = existing_by_date.get(row_date)
+
+        payload = {
+            "n1": int(row["n1"]),
+            "n2": int(row["n2"]),
+            "n3": int(row["n3"]),
+            "n4": int(row["n4"]),
+            "n5": int(row["n5"]) if pd.notna(row.get("n5")) else None,
+            "n6": int(row["n6"]) if pd.notna(row.get("n6")) else None,
+            "bonus": int(row["bonus"]) if pd.notna(row.get("bonus")) else None,
+            "power_play": int(row["power_play"]) if pd.notna(row.get("power_play")) else None,
+            "era": row["era"],
+            "is_bonus_era": bool(row.get("is_bonus_era", False)),
+        }
+
+        if existing_row is not None:
+            changed = False
+            for field in tracked_fields:
+                if getattr(existing_row, field) != payload[field]:
+                    setattr(existing_row, field, payload[field])
+                    changed = True
+
+            if changed:
+                updated += 1
             continue
+
         draw = Draw(
             game=game,
-            draw_date=row["draw_date"],
-            n1=int(row["n1"]),
-            n2=int(row["n2"]),
-            n3=int(row["n3"]),
-            n4=int(row["n4"]),
-            n5=int(row["n5"]) if pd.notna(row.get("n5")) else None,
-            n6=int(row["n6"]) if pd.notna(row.get("n6")) else None,
-            bonus=int(row["bonus"]) if pd.notna(row.get("bonus")) else None,
-            power_play=int(row["power_play"]) if pd.notna(row.get("power_play")) else None,
-            era=row["era"],
-            is_bonus_era=bool(row.get("is_bonus_era", False)),
+            draw_date=row_date,
+            **payload,
         )
         rows.append(draw)
 
-    if rows:
+    inserted = len(rows)
+    if rows or updated:
         db.bulk_save_objects(rows)
         db.commit()
 
-    return len(rows)
+    return {"inserted": inserted, "updated": updated}
 
 
 def get_draws_df(db: Session, game: str, include_era2: bool = False) -> pd.DataFrame:
@@ -145,6 +177,8 @@ def get_draws_df(db: Session, game: str, include_era2: bool = False) -> pd.DataF
     query = db.query(Draw).filter(Draw.game == game)
     if game == "lotto" and not include_era2:
         query = query.filter(Draw.era != "era2")
+    if game == "powerball" and not include_era2:
+        query = query.filter(Draw.era == "era3")
     draws = query.order_by(Draw.draw_date).all()
 
     if not draws:
@@ -208,4 +242,6 @@ def count_draws(db: Session, game: str, include_era2: bool = False) -> int:
     query = db.query(Draw).filter(Draw.game == game)
     if game == "lotto" and not include_era2:
         query = query.filter(Draw.era != "era2")
+    if game == "powerball" and not include_era2:
+        query = query.filter(Draw.era == "era3")
     return query.count()

@@ -54,11 +54,12 @@ async def upload_csv(game: str, file: UploadFile = File(...)):
         return {"error": f"Parse error: {e}"}
 
     db: Session = next(get_session())
-    inserted = upsert_draws(db, game, df)
+    upsert_stats = upsert_draws(db, game, df)
 
     return {
         "game": game,
         "rows_parsed": len(df),
-        "rows_inserted": inserted,
+        "rows_inserted": upsert_stats["inserted"],
+        "rows_updated": upsert_stats["updated"],
         "total_rows": len(df),
     }

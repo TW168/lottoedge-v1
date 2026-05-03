@@ -160,10 +160,12 @@ def _validate(combo: list[int], game: str, sum_data: dict, anti_pairs: list) -> 
     grp_ok, grp_note = passes_group_filter(combo, game)
     if not grp_ok:
         notes.append(grp_note)
+        ok = False
 
     con_ok, con_note = passes_consecutive_filter(combo)
     if not con_ok:
         notes.append(con_note)
+        ok = False
 
     for i, a in enumerate(combo):
         for b in combo[i + 1:]:

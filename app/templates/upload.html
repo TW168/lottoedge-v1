@@ -55,7 +55,7 @@ async function uploadCSV(event, game) {
             statusEl.innerHTML = `<i class="bi bi-x-circle me-1"></i>${data.error}`;
             statusEl.className = 'mt-2 small text-danger';
         } else {
-            statusEl.innerHTML = `<i class="bi bi-check-circle me-1"></i>${data.rows_inserted} new draws added (${data.rows_parsed} total in file)`;
+            statusEl.innerHTML = `<i class="bi bi-check-circle me-1"></i>${data.rows_inserted} new draws added, ${data.rows_updated || 0} existing draws updated (${data.rows_parsed} total in file)`;
             statusEl.className = 'mt-2 small text-success';
         }
     } catch (e) {

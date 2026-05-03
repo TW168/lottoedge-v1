@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from app.services.balance import analyze_balance, passes_balance_filter
+from app.services.pick_generator import _validate
 from app.services.sum_range import compute_sum_range, passes_sum_gate
 
 
@@ -61,3 +62,14 @@ def test_sum_range_percentiles():
     assert data["p15"] < data["p85"]
     assert data["p15"] > data["min"]
     assert data["p85"] < data["max"]
+
+
+def test_validate_rejects_group_and_consecutive_failures():
+    combo = [1, 2, 3, 4, 40]
+    sum_data = {"p15": 0, "p85": 200}
+
+    ok, notes = _validate(combo, "powerball", sum_data, anti_pairs=[])
+
+    assert ok is False
+    assert any("Spans" in note for note in notes)
+    assert any("Too many consecutive pairs" in note for note in notes)

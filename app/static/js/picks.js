@@ -3,6 +3,7 @@
 async function generatePicks() {
     const game = document.getElementById('gameSelect').value;
     const count = parseInt(document.getElementById('countSelect').value);
+    const includeLegacy = document.getElementById('includeLegacyEras')?.checked || false;
     const resultsEl = document.getElementById('picksResults');
     const riskPanel = document.getElementById('riskPanel');
 
@@ -17,7 +18,7 @@ async function generatePicks() {
     const payload = {
         game,
         count,
-        include_era2: false,
+        include_era2: includeLegacy,
         diversity_level: parseInt(document.getElementById('diversity_level').value),
         weight_frequency:   parseInt(document.getElementById('weight_frequency').value),
         weight_positional:  parseInt(document.getElementById('weight_positional').value),
@@ -50,6 +51,24 @@ async function generatePicks() {
     } catch (e) {
         resultsEl.innerHTML = `<div class="alert alert-danger">Error: ${e.message}</div>`;
     }
+}
+
+function updateLegacyToggleLabel() {
+    const game = document.getElementById('gameSelect')?.value;
+    const label = document.getElementById('includeLegacyLabel');
+    if (!label) return;
+
+    if (game === 'lotto') {
+        label.textContent = 'Include Lotto Era 2 (2003-2006 Pick 5 + Bonus)';
+        return;
+    }
+
+    if (game === 'powerball') {
+        label.textContent = 'Include historical Powerball eras (pre-2015 pool formats)';
+        return;
+    }
+
+    label.textContent = 'Include historical eras (not used for this game)';
 }
 
 
@@ -135,3 +154,11 @@ function renderRiskPanel(odds, game, panelEl) {
 
     riskContent.innerHTML = html;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const gameSelect = document.getElementById('gameSelect');
+    if (!gameSelect) return;
+
+    updateLegacyToggleLabel();
+    gameSelect.addEventListener('change', updateLegacyToggleLabel);
+});
