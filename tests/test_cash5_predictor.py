@@ -171,3 +171,29 @@ def test_pattern_recognition_has_sum_fields(
     assert "ideal_contribution" in result
     # Ideal contribution should sit near the middle of the 1-35 pool
     assert 8.0 <= result["ideal_contribution"] <= 28.0
+
+
+def test_ensemble_picks_vary_across_calls(
+    synthetic_cash5_draws: list[list[int]],
+):
+    """Repeated ensemble calls must NOT always return the same top_numbers.
+
+    This verifies that softmax-weighted sampling (temperature > 0) breaks
+    the deterministic ranked[:5] behaviour that caused the same picks every time.
+    """
+    seen: set[tuple[int, ...]] = set()
+    for _ in range(20):
+        result = ensemble_predict(
+            draws=synthetic_cash5_draws,
+            weights=EnsembleWeights(),
+            window=120,
+            monte_carlo_samples=500,
+            jackpot=100000.0,
+            ticket_cost=1.0,
+            temperature=1.0,
+        )
+        seen.add(tuple(result["top_numbers"]))
+    assert len(seen) > 1, (
+        "ensemble_predict returned the same 5 numbers across 20 calls — "
+        "softmax sampling is not working"
+    )

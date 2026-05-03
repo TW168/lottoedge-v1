@@ -70,6 +70,11 @@ class CashFivePredictionRequest(BaseModel):
     weight_markov: float = 1.0
     weight_monte_carlo: float = 1.0
     weight_pattern: float = 1.0
+    # temperature controls how much randomness is mixed into pick selection.
+    # 0.3 = nearly deterministic (same top picks every time).
+    # 1.0 = picks weighted directly by ensemble scores.
+    # 2.0+ = flatter distribution, more exploration of lower-ranked numbers.
+    temperature: float = 1.0
 
 
 class CashFivePredictionResponse(BaseModel):

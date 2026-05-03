@@ -455,6 +455,7 @@ def ensemble_predict(
     monte_carlo_samples: int,
     jackpot: float,
     ticket_cost: float,
+    temperature: float = 1.0,
 ) -> dict[str, Any]:
     """Combine all Cash Five algorithms into a weighted ensemble prediction.
 
@@ -465,6 +466,10 @@ def ensemble_predict(
         monte_carlo_samples: Number of Monte Carlo simulations.
         jackpot: Jackpot value for EV estimation.
         ticket_cost: Cost per ticket.
+        temperature: Softmax temperature for pick sampling.  Lower values
+            (e.g. 0.3) produce near-deterministic top picks; higher values
+            (e.g. 2.0) increase exploration of lower-ranked candidates.
+            Default 1.0 gives varied but score-weighted picks every call.
 
     Returns:
         Combined result containing top numbers, alternates, confidence,
@@ -498,11 +503,25 @@ def ensemble_predict(
             + weight_values["pattern"] * pattern["scores"][num]
         ) / total_w
 
-    ranked = sorted(combined.items(), key=lambda kv: kv[1], reverse=True)
-    top_numbers = sorted(num for num, _ in ranked[:5])
-    alternates = sorted(num for num, _ in ranked[5:10])
+    # Build softmax-weighted sampling distribution so each call returns
+    # different picks while still strongly favouring high-scored numbers.
+    # temperature=1.0 weights directly by score; lower = more deterministic;
+    # higher = more uniform / exploratory.
+    nums_arr = np.array(list(combined.keys()), dtype=int)
+    scores_arr = np.array([combined[n] for n in nums_arr], dtype=float)
+    temp = max(temperature, 1e-6)
+    logits = scores_arr / temp
+    # Numerically stable softmax
+    logits -= logits.max()
+    probs = np.exp(logits)
+    probs /= probs.sum()
 
-    top_score_values = [score for _, score in ranked[:5]]
+    # Sample 10 distinct numbers without replacement
+    selected = np.random.choice(nums_arr, size=10, replace=False, p=probs)
+    top_numbers = sorted(int(n) for n in selected[:5])
+    alternates = sorted(int(n) for n in selected[5:])
+
+    top_score_values = [combined[n] for n in top_numbers]
     confidence = round(float(np.mean(top_score_values) * 100.0), 4)
 
     split_risk = split_risk_score(top_numbers)
@@ -534,6 +553,7 @@ def predict_from_dataframe(
     monte_carlo_samples: int,
     jackpot: float,
     ticket_cost: float,
+    temperature: float = 1.0,
 ) -> dict[str, Any]:
     """Run the full Cash Five prediction flow from DataFrame input.
 
@@ -544,6 +564,7 @@ def predict_from_dataframe(
         monte_carlo_samples: Number of Monte Carlo simulation tickets.
         jackpot: Jackpot value used in EV metrics.
         ticket_cost: Ticket cost in dollars.
+        temperature: Softmax temperature for pick sampling (see ensemble_predict).
 
     Returns:
         Prediction payload including algorithm outputs and ensemble metrics.
@@ -556,4 +577,5 @@ def predict_from_dataframe(
         monte_carlo_samples=monte_carlo_samples,
         jackpot=jackpot,
         ticket_cost=ticket_cost,
+        temperature=temperature,
     )

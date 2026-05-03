@@ -284,6 +284,7 @@ def prediction_ensemble(
         monte_carlo_samples=payload.monte_carlo_samples,
         jackpot=payload.jackpot,
         ticket_cost=payload.ticket_cost,
+        temperature=payload.temperature,
     )
 
     db_row = CashFivePredictionRun(
