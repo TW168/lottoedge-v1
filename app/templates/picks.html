@@ -4,7 +4,55 @@
 {% block content %}
 <div class="p-4">
     <h2 class="fw-bold mb-1" style="font-family: 'DM Sans', sans-serif;">Generate Picks</h2>
-    <p class="text-secondary mb-4">Configure strategy weights and generate optimised number combinations.</p>
+    <p class="text-secondary mb-3">Configure strategy weights and generate optimised number combinations.</p>
+
+    <!-- How it works accordion -->
+    <div class="accordion mb-4" id="howItWorksAccordion">
+        <div class="accordion-item" style="background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:10px;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-semibold" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#howItWorksBody"
+                    style="background:var(--bg-secondary);color:var(--text-primary);border-radius:10px;box-shadow:none;">
+                    <i class="bi bi-question-circle me-2" style="color:var(--accent-gold)"></i>
+                    How does this work? (click to expand)
+                </button>
+            </h2>
+            <div id="howItWorksBody" class="accordion-collapse collapse">
+                <div class="accordion-body" style="color:var(--text-secondary);font-size:0.9rem;">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-2" style="color:var(--accent-gold)">Settings</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><strong style="color:var(--text-primary)">Game</strong> — Which lottery to generate tickets for.</li>
+                                <li class="mb-2"><strong style="color:var(--text-primary)">Number of picks</strong> — How many different ticket combinations to generate.</li>
+                                <li class="mb-2"><strong style="color:var(--text-primary)">Include historical eras</strong> — Texas Lotto had a different format 2003–2006 (Pick 5 + Bonus instead of Pick 6). Off by default because mixing formats skews results.</li>
+                                <li class="mb-2"><strong style="color:var(--text-primary)">Diversity Level</strong> — Low = picks share many numbers (safer, concentrated). High = picks spread across the full number pool (wider coverage).</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-2" style="color:var(--accent-gold)">Module Weights — what each one scores</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Frequency</strong> — How often a number appeared in the last 30 draws.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Positional</strong> — Whether a number tends to land in a specific sorted position.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Cluster/Pairs</strong> — Numbers that frequently appear together with other strong candidates.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Due Score</strong> — Numbers that haven't been drawn for longer than their usual gap (overdue).</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Momentum</strong> — Numbers whose recent frequency is rising vs. their long-term average.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Short-term Heat</strong> — Numbers drawn in just the last 10 draws.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Group Balance</strong> — Rewards picks that spread across number decades (1–9, 10–19 …). Most winners span 4–5 groups.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">ML/LSTM &amp; Ensemble ML</strong> — Machine learning models (Random Forest + Gradient Boosting) trained on historical draw features.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Monte Carlo</strong> — Simulates 50,000 draws weighted by history; numbers that appear most often get a higher score.</li>
+                                <li class="mb-1"><strong style="color:var(--text-primary)">Coverage</strong> — Favours numbers that increase unique pair coverage across your full set of tickets.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-2 rounded" style="background:var(--bg-tertiary);font-size:0.82rem;">
+                        <i class="bi bi-info-circle me-1" style="color:var(--accent-blue)"></i>
+                        Every number is scored 0–100 by blending all 11 signals using your weights. The generator then picks combinations that pass statistical filters: correct odd/even balance, high/low balance, sum within the 70% historical range, and good group distribution.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row g-4">
         <!-- Controls -->
