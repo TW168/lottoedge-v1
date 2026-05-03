@@ -62,7 +62,7 @@ class GeneratedPick(BaseModel):
 class CashFivePredictionRequest(BaseModel):
     window: int = 120
     monte_carlo_samples: int = 5000
-    jackpot: float = 100000.0
+    jackpot: float = 25000.0
     ticket_cost: float = 1.0
     weight_frequency: float = 1.0
     weight_hot_cold: float = 1.0
