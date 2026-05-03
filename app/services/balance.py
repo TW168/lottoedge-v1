@@ -1,6 +1,8 @@
 """Modules 4 & 5: Odd/Even and High/Low balance analysis and filtering."""
 from __future__ import annotations
 
+from app.services.data_loader import get_main_numbers
+
 
 # ── Game constants ─────────────────────────────────────────────────────────────
 
@@ -52,7 +54,6 @@ def passes_balance_filter(numbers: list[int], game: str) -> tuple[bool, str]:
 
 def compute_historical_balance(df, game: str) -> dict:
     """Compute historical odd/even and high/low distribution for the dashboard."""
-    from app.services.data_loader import get_main_numbers
     df = get_main_numbers(df, game)
     if df.empty:
         return {}
@@ -83,5 +84,5 @@ def compute_historical_balance(df, game: str) -> dict:
             for k, v in sorted(hl_dist.items(), key=lambda x: x[1], reverse=True)
         },
         "preferred_oe": [f"{o}o/{e}e" for o, e in _ODD_EVEN_PREFERRED[game]],
-        "preferred_hl": [f"{h}h/{l}l" for h, l in _ODD_EVEN_PREFERRED[game]],
+        "preferred_hl": [f"{h}h/{low}l" for h, low in _ODD_EVEN_PREFERRED[game]],
     }

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.services.data_loader import get_main_numbers
+
 _GROUPS = {
     "lotto":     [(1, 9), (10, 19), (20, 29), (30, 39), (40, 49), (50, 54)],
     "twostep":   [(1, 9), (10, 19), (20, 29), (30, 35)],
@@ -44,7 +46,6 @@ def passes_group_filter(numbers: list[int], game: str) -> tuple[bool, str]:
 
 
 def compute_group_distribution(df: pd.DataFrame, game: str) -> dict:
-    from app.services.data_loader import get_main_numbers
     df = get_main_numbers(df, game)
     if df.empty:
         return {}

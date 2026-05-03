@@ -66,7 +66,7 @@ def _normalize_scores(raw: dict[int, float]) -> dict[int, float]:
     min_v = min(values)
     max_v = max(values)
     if max_v == min_v:
-        return {k: 0.5 for k in raw}
+        return dict.fromkeys(raw, 0.5)
     return {k: (v - min_v) / (max_v - min_v) for k, v in raw.items()}
 
 
@@ -242,7 +242,7 @@ def markov_chain_analysis(
     probs = (matrix + alpha) / (row_sums + alpha * POOL_MAX)
 
     last_draw = draws[-1] if draws else []
-    raw_scores = {num: 0.0 for num in range(1, 36)}
+    raw_scores: dict[int, float] = dict.fromkeys(range(1, 36), 0.0)
     if last_draw:
         for candidate in range(1, 36):
             raw_scores[candidate] = float(
@@ -295,8 +295,9 @@ def monte_carlo_analysis(
     hit_counts = Counter()
     population = np.arange(1, 36)
 
+    _rng_mc = np.random.default_rng()
     for _ in range(max(simulations, 1)):
-        ticket = np.random.choice(population, size=PICK_SIZE, replace=False, p=probs)
+        ticket = _rng_mc.choice(population, size=PICK_SIZE, replace=False, p=probs)
         nums = sorted(int(n) for n in ticket.tolist())
         tickets.append(nums)
         hit_counts.update(nums)
@@ -503,10 +504,10 @@ def ensemble_predict(
             + weight_values["pattern"] * pattern["scores"][num]
         ) / total_w
 
-    # Build softmax-weighted sampling distribution so each call returns
-    # different picks while still strongly favouring high-scored numbers.
-    # temperature=1.0 weights directly by score; lower = more deterministic;
-    # higher = more uniform / exploratory.
+    # Add a module-level RNG so all sampling is reproducible per-session
+    # and uses the new Generator API instead of the legacy global state.
+    _rng = np.random.default_rng()
+
     nums_arr = np.array(list(combined.keys()), dtype=int)
     scores_arr = np.array([combined[n] for n in nums_arr], dtype=float)
     temp = max(temperature, 1e-6)
@@ -517,7 +518,7 @@ def ensemble_predict(
     probs /= probs.sum()
 
     # Sample 10 distinct numbers without replacement
-    selected = np.random.choice(nums_arr, size=10, replace=False, p=probs)
+    selected = _rng.choice(nums_arr, size=10, replace=False, p=probs)
     top_numbers = sorted(int(n) for n in selected[:5])
     alternates = sorted(int(n) for n in selected[5:])
 

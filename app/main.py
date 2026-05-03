@@ -9,6 +9,8 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.extension import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIMiddleware
 
+from sqlalchemy.orm import Session as _Session
+
 # Teach FastAPI's JSON encoder to handle numpy scalar types
 ENCODERS_BY_TYPE[np.integer] = int
 ENCODERS_BY_TYPE[np.floating] = float
@@ -39,8 +41,6 @@ def _auto_seed_db() -> None:
     """Seed the database from CSV files in data/ if they exist and the
     corresponding game table is empty.  Runs once at startup so users
     never have to re-upload after a restart."""
-    from sqlalchemy.orm import Session as _Session
-
     db: _Session = next(get_session())
     for game, cfg in GAMES.items():
         csv_path = cfg["csv_file"]

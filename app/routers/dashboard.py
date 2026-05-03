@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.models.database import JackpotEntry, get_session
+from app.models.database import Draw, JackpotEntry, get_session
 from app.services.data_loader import count_draws, get_draws_df
 from app.services.expected_value import compute_ev
 from app.services.frequency import compute_frequency
@@ -64,7 +64,6 @@ async def history_page(
     db: Session = Depends(get_session),
 ):
     PAGE_SIZE = 50
-    from app.models.database import Draw
     query = db.query(Draw).filter(Draw.game == game)
     if game == "lotto" and not include_era2:
         query = query.filter(Draw.era != "era2")

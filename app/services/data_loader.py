@@ -184,9 +184,8 @@ def get_draws_df(db: Session, game: str, include_era2: bool = False) -> pd.DataF
     if not draws:
         return pd.DataFrame()
 
-    records = []
-    for d in draws:
-        records.append({
+    records = [
+        {
             "draw_date": d.draw_date,
             "n1": d.n1, "n2": d.n2, "n3": d.n3, "n4": d.n4,
             "n5": d.n5, "n6": d.n6,
@@ -194,7 +193,9 @@ def get_draws_df(db: Session, game: str, include_era2: bool = False) -> pd.DataF
             "power_play": d.power_play,
             "era": d.era,
             "is_bonus_era": d.is_bonus_era,
-        })
+        }
+        for d in draws
+    ]
     return pd.DataFrame(records)
 
 
@@ -216,7 +217,7 @@ def get_main_numbers(df: pd.DataFrame, game: str) -> pd.DataFrame:
         result = df.copy()
         result["numbers"] = result.apply(_lotto_nums, axis=1)
         return result
-    elif game == "twostep":
+    if game == "twostep":
         cols = ["n1", "n2", "n3", "n4"]
     elif game == "cash5":
         cols = ["n1", "n2", "n3", "n4", "n5"]
@@ -226,8 +227,7 @@ def get_main_numbers(df: pd.DataFrame, game: str) -> pd.DataFrame:
             axis=1,
         )
         # Drop rows that don't have exactly 5 valid numbers (bad/mixed data)
-        result = result[result["numbers"].apply(len) == 5].reset_index(drop=True)
-        return result
+        return result[result["numbers"].apply(len) == 5].reset_index(drop=True)
     else:  # powerball
         cols = ["n1", "n2", "n3", "n4", "n5"]
 

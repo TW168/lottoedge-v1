@@ -35,7 +35,7 @@ def abbreviated_wheel(numbers: list[int], pick: int, budget: int) -> list[list[i
 
     # Greedy balanced selection: track per-number appearances
     selected: list[list[int]] = []
-    appearances = {num: 0 for num in numbers}
+    appearances: dict[int, int] = dict.fromkeys(numbers, 0)
     covered_pairs: set[tuple] = set()
 
     # Sort combos by pair coverage gain (descending)

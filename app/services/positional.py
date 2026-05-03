@@ -3,13 +3,14 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.services.data_loader import get_main_numbers
+
 
 def compute_positional(df: pd.DataFrame, game: str) -> dict:
     """
     Build a positional frequency matrix.
     Returns: { position (1-indexed): { number: count } }
     """
-    from app.services.data_loader import get_main_numbers
 
     df = get_main_numbers(df, game)
     if df.empty:
@@ -19,7 +20,7 @@ def compute_positional(df: pd.DataFrame, game: str) -> dict:
     pool = _get_pool(game)
 
     # matrix[pos][num] = count
-    matrix = {pos: {num: 0 for num in pool} for pos in range(1, pick + 1)}
+    matrix = {pos: dict.fromkeys(pool, 0) for pos in range(1, pick + 1)}
 
     for nums in df["numbers"]:
         sorted_nums = [n for n in sorted(nums) if n in pool]

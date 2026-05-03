@@ -3,8 +3,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 from itertools import combinations
+from math import comb
 
 import pandas as pd
+
+from app.services.data_loader import get_main_numbers
 
 
 def compute_clusters(df: pd.DataFrame, game: str) -> dict:
@@ -12,8 +15,6 @@ def compute_clusters(df: pd.DataFrame, game: str) -> dict:
     Compute pair co-occurrence counts and affinity scores.
     Returns top 30 pairs, top 10 triplets, and anti-clusters.
     """
-    from app.services.data_loader import get_main_numbers
-
     df = get_main_numbers(df, game)
     if df.empty:
         return {"pairs": [], "triplets": [], "anti_pairs": [], "pair_matrix": {}}
@@ -24,7 +25,6 @@ def compute_clusters(df: pd.DataFrame, game: str) -> dict:
 
     # Expected count per pair under uniform random
     # Each draw has C(pick,2) pairs; expected = n_draws * C(pick,2) / C(pool,2)
-    from math import comb
     expected = n_draws * comb(pick, 2) / comb(pool_size, 2) if pool_size > pick else 1
 
     pair_counts: dict[tuple, int] = defaultdict(int)

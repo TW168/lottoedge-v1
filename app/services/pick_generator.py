@@ -3,14 +3,22 @@ from __future__ import annotations
 
 import random
 
+import numpy as np
 import pandas as pd
 
-from app.services.balance import passes_balance_filter
-from app.services.cluster import is_anti_cluster
+from app.services.balance import analyze_balance, passes_balance_filter
+from app.services.cluster import compute_clusters, is_anti_cluster
 from app.services.composite_scorer import ScoringWeights, compute_composite_scores
 from app.services.consecutive import passes_consecutive_filter
 from app.services.group_dist import passes_group_filter
 from app.services.sum_range import passes_sum_gate
+from app.services import (
+    frequency as freq_mod,
+    ml_engine,
+    monte_carlo,
+    positional as pos_mod,
+    sum_range,
+)
 
 _PICK = {"lotto": 6, "twostep": 4, "powerball": 5, "cash5": 5}
 _POOL = {"lotto": 54, "twostep": 35, "powerball": 69, "cash5": 35}
@@ -29,20 +37,11 @@ def generate_picks(
     Generate `count` optimised picks for a given game.
     `precomputed` can contain pre-run analysis dicts to avoid recomputation.
     """
-    from app.services import (
-        cluster as cluster_mod,
-        frequency as freq_mod,
-        ml_engine,
-        monte_carlo,
-        positional as pos_mod,
-        sum_range,
-    )
-
     pc = precomputed or {}
 
     freq_data = pc.get("freq_data") or freq_mod.compute_frequency(df, game)
     pos_data = pc.get("pos_data") or pos_mod.compute_positional(df, game)
-    clust_data = pc.get("clust_data") or cluster_mod.compute_clusters(df, game)
+    clust_data = pc.get("clust_data") or compute_clusters(df, game)
     sum_data = pc.get("sum_data") or sum_range.compute_sum_range(df, game)
     mc_data = pc.get("mc_data") or monte_carlo.run_monte_carlo(df, game, n_simulations=50_000)
     ml_models = pc.get("ml_models") or ml_engine.train_ensemble(df, game)
@@ -73,7 +72,7 @@ def generate_picks(
     # Use top 20 candidates; expand if we can't fill `count` valid combos
     candidate_size = max(20, pick * 4)
     candidates = ranked[:candidate_size]
-    number_usage: dict[int, int] = {n: 0 for n in candidates}
+    number_usage: dict[int, int] = dict.fromkeys(candidates, 0)
     diversity_level = _clamp_int(diversity_level, 0, 100)
     max_overlap = _max_allowed_overlap(game, pick, diversity_level)
 
@@ -117,7 +116,6 @@ def generate_picks(
             number_usage[num] = number_usage.get(num, 0) + 1
         combo_score = round(sum(composite.get(n, 0) for n in combo) / pick, 2)
 
-        from app.services.balance import analyze_balance
         bal = analyze_balance(list(combo), game)
 
         result = {
@@ -178,10 +176,10 @@ def _validate(combo: list[int], game: str, sum_data: dict, anti_pairs: list) -> 
 
 
 def _weighted_sample(candidates: list[int], k: int, probs: list[float]) -> list[int]:
-    import numpy as np
+    rng = np.random.default_rng()
     p = np.array(probs)
     p /= p.sum()
-    return [int(x) for x in np.random.choice(candidates, size=k, replace=False, p=p)]
+    return [int(x) for x in rng.choice(candidates, size=k, replace=False, p=p)]
 
 
 def _diversified_weight(base_weight: float, usage_count: int, diversity_level: int) -> float:
@@ -213,8 +211,7 @@ def _get_bonus_freq(df: pd.DataFrame, game: str) -> dict[int, int]:
     """Count bonus ball appearances."""
     if "bonus" not in df.columns:
         return {}
-    counts = df["bonus"].dropna().astype(int).value_counts().to_dict()
-    return counts
+    return df["bonus"].dropna().astype(int).value_counts().to_dict()
 
 
 def _pick_bonus(bonus_pool: list[int], freq: dict) -> int:
@@ -223,5 +220,5 @@ def _pick_bonus(bonus_pool: list[int], freq: dict) -> int:
     weights = [freq.get(n, 1) for n in bonus_pool]
     total = sum(weights)
     probs = [w / total for w in weights]
-    import numpy as np
-    return int(np.random.choice(bonus_pool, p=probs))
+    rng = np.random.default_rng()
+    return int(rng.choice(bonus_pool, p=probs))

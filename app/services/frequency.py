@@ -1,8 +1,10 @@
 """Module 1: Frequency Analysis — hot, cold, overdue, momentum tracking."""
 from __future__ import annotations
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+from app.services.data_loader import get_main_numbers
 
 
 def compute_frequency(df: pd.DataFrame, game: str) -> dict:
@@ -10,7 +12,6 @@ def compute_frequency(df: pd.DataFrame, game: str) -> dict:
     Compute frequency analysis across three time windows.
     Returns a dict keyed by number with frequency stats and classifications.
     """
-    from app.services.data_loader import get_main_numbers
 
     df = get_main_numbers(df, game)
     if df.empty:
@@ -127,7 +128,6 @@ def _compute_skips(all_draws: list[list[int]], pool: list[int]) -> dict:
 
 def get_skip_data(df: pd.DataFrame, game: str) -> dict:
     """Return skip data for all numbers (for Module 7 / charts)."""
-    from app.services.data_loader import get_main_numbers
     df = get_main_numbers(df, game)
     if df.empty:
         return {}

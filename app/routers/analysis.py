@@ -9,10 +9,12 @@ from app.services import (
     consecutive,
     frequency,
     group_dist,
+    ml_engine,
     positional,
     probability,
     sum_range,
 )
+from app.services.coverage import build_coverage as _build_coverage
 from app.services.data_loader import count_draws, get_draws_df
 
 router = APIRouter(prefix="/api")
@@ -26,8 +28,7 @@ def _require_game(game: str):
 
 
 def _load(db: Session, game: str, include_era2: bool = False):
-    df = get_draws_df(db, game, include_era2=include_era2)
-    return df
+    return get_draws_df(db, game, include_era2=include_era2)
 
 
 @router.get("/analysis/{game}")
@@ -146,15 +147,12 @@ def get_ml_prediction(
     df = _load(db, game, include_era2)
     if df.empty:
         return {}
-    from app.services import ml_engine
     models = ml_engine.train_ensemble(df, game)
     return ml_engine.predict_scores(models, df, game)
 
 
 @router.post("/coverage/build")
 def build_coverage(payload: dict):
-    from app.services.coverage import build_coverage as _build_coverage
-
     game = payload.get("game", "lotto")
     numbers = payload.get("numbers", [])
     budget = int(payload.get("budget", 10))

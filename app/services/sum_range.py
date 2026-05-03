@@ -4,12 +4,13 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from app.services.data_loader import get_main_numbers
+
 
 def compute_sum_range(df: pd.DataFrame, game: str) -> dict:
     """
-    Compute sum distribution and the 70% band (15th–85th percentile).
+    Compute sum distribution and the 70% band (15th-85th percentile).
     """
-    from app.services.data_loader import get_main_numbers
 
     df = get_main_numbers(df, game)
     if df.empty:

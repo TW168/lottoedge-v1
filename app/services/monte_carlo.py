@@ -6,6 +6,9 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
+from app.services.data_loader import get_main_numbers
+from app.services.frequency import _get_pool
+
 
 def run_monte_carlo(
     df: pd.DataFrame,
@@ -16,9 +19,6 @@ def run_monte_carlo(
     Simulate n_simulations draws using historical frequency as weights.
     Returns frequency counts for each number across simulations.
     """
-    from app.services.data_loader import get_main_numbers
-    from app.services.frequency import _get_pool
-
     df = get_main_numbers(df, game)
     if df.empty:
         return {}

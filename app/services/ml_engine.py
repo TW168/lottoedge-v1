@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
+
+from app.services.data_loader import get_main_numbers
+from app.services.frequency import _get_pool
 
 
 def _build_features(df: pd.DataFrame, game: str, pool: list[int]) -> tuple[np.ndarray, np.ndarray]:
@@ -16,8 +19,6 @@ def _build_features(df: pd.DataFrame, game: str, pool: list[int]) -> tuple[np.nd
         - skip since last appearance
         - positional average
     """
-    from app.services.data_loader import get_main_numbers
-
     df = get_main_numbers(df, game)
     draws = df["numbers"].tolist()
     n = len(draws)
@@ -52,8 +53,6 @@ def train_ensemble(df: pd.DataFrame, game: str) -> dict:
     Train RF + GBM ensemble. Returns trained model objects and scaler.
     Lightweight models suitable for batch scoring on CPU.
     """
-    from app.services.frequency import _get_pool
-
     pool = _get_pool(game)
     X, y = _build_features(df, game, pool)
 
@@ -78,15 +77,12 @@ def train_ensemble(df: pd.DataFrame, game: str) -> dict:
 
 def predict_scores(models: dict, df: pd.DataFrame, game: str) -> dict[int, float]:
     """
-    Return a score (0–1) for each number in the pool using the ensemble.
+    Return a score (0-1) for each number in the pool using the ensemble.
     Higher = model thinks number is more likely to appear.
     """
-    from app.services.frequency import _get_pool
-    from app.services.data_loader import get_main_numbers
-
     if not models.get("trained"):
         # Fall back to uniform scores
-        return {n: 0.5 for n in _get_pool(game)}
+        return dict.fromkeys(_get_pool(game), 0.5)
 
     df_main = get_main_numbers(df, game)
     draws = df_main["numbers"].tolist()
@@ -108,4 +104,4 @@ def predict_scores(models: dict, df: pd.DataFrame, game: str) -> dict[int, float
     gbm_probs = models["gbm"].predict_proba(X)[:, 1]
     avg_probs = (rf_probs + gbm_probs) / 2
 
-    return {num: round(float(p), 4) for num, p in zip(pool, avg_probs)}
+    return {num: round(float(p), 4) for num, p in zip(pool, avg_probs, strict=True)}

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.services.data_loader import get_main_numbers
+
 
 def count_consecutive_pairs(numbers: list[int]) -> int:
     s = sorted(numbers)
@@ -10,7 +12,6 @@ def count_consecutive_pairs(numbers: list[int]) -> int:
 
 
 def compute_consecutive_stats(df: pd.DataFrame, game: str) -> dict:
-    from app.services.data_loader import get_main_numbers
     df = get_main_numbers(df, game)
     if df.empty:
         return {}
