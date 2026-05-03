@@ -57,4 +57,4 @@ def run_monte_carlo(
 
 
 def _pick_count(game: str) -> int:
-    return {"lotto": 6, "twostep": 4, "powerball": 5}[game]
+    return {"lotto": 6, "twostep": 4, "powerball": 5, "cash5": 5}[game]

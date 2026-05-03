@@ -12,8 +12,8 @@ from app.services.consecutive import passes_consecutive_filter
 from app.services.group_dist import passes_group_filter
 from app.services.sum_range import passes_sum_gate
 
-_PICK = {"lotto": 6, "twostep": 4, "powerball": 5}
-_POOL = {"lotto": 54, "twostep": 35, "powerball": 69}
+_PICK = {"lotto": 6, "twostep": 4, "powerball": 5, "cash5": 5}
+_POOL = {"lotto": 54, "twostep": 35, "powerball": 69, "cash5": 35}
 _BONUS_POOL = {"twostep": 35, "powerball": 26}
 
 

@@ -6,11 +6,11 @@ from itertools import combinations
 
 
 def _pick_count(game: str) -> int:
-    return {"lotto": 6, "twostep": 4, "powerball": 5}[game]
+    return {"lotto": 6, "twostep": 4, "powerball": 5, "cash5": 5}[game]
 
 
 def _pool_size(game: str) -> int:
-    return {"lotto": 54, "twostep": 35, "powerball": 69}[game]
+    return {"lotto": 54, "twostep": 35, "powerball": 69, "cash5": 35}[game]
 
 
 def full_wheel(numbers: list[int], pick: int) -> list[list[int]]:
@@ -115,7 +115,7 @@ def build_coverage(
     Returns: { tickets, ticket_count, cost, guarantee, coverage_pct, wheel_type }
     """
     pick = _pick_count(game)
-    ticket_cost = {"lotto": 1, "twostep": 1, "powerball": 2}[game]
+    ticket_cost = {"lotto": 1, "twostep": 1, "powerball": 2, "cash5": 1}[game]
 
     numbers = sorted(set(numbers))
     if len(numbers) < pick:
