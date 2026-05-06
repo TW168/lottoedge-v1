@@ -5,7 +5,11 @@ import pandas as pd
 import pytest
 
 from app.services.balance import analyze_balance, passes_balance_filter
-from app.services.pick_generator import _validate
+from app.services.pick_generator import (
+    _history_penalized_weight,
+    _max_number_usage,
+    _validate,
+)
 from app.services.sum_range import compute_sum_range, passes_sum_gate
 
 
@@ -73,3 +77,21 @@ def test_validate_rejects_group_and_consecutive_failures():
     assert ok is False
     assert any("Spans" in note for note in notes)
     assert any("Too many consecutive pairs" in note for note in notes)
+
+
+def test_history_penalty_reduces_weight_for_recently_used_numbers():
+    base = 10.0
+    no_history = _history_penalized_weight(base, recent_usage=0, diversity_level=60)
+    with_history = _history_penalized_weight(base, recent_usage=5, diversity_level=60)
+    assert with_history < no_history
+
+
+def test_twostep_usage_cap_is_tight_under_normal_diversity():
+    cap = _max_number_usage(
+        game="twostep",
+        count=5,
+        pick_size=4,
+        candidate_size=27,
+        diversity_level=60,
+    )
+    assert cap <= 2

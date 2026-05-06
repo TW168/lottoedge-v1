@@ -11,6 +11,14 @@
 
 ### Pick generation validation
 - `app/services/pick_generator.py` now enforces group-span and consecutive rules as hard validation failures, instead of advisory notes only.
+- Pick generation now uses anti-repeat controls:
+  - Adaptive candidate pool size grows with requested diversity and ticket count.
+  - Per-run number usage caps prevent sticky anchor numbers from dominating a batch.
+  - Bonus-ball selection now applies run-level and recent-history penalties.
+
+### Generated pick memory
+- `app/services/pick_history.py` stores recent generated picks in `data/pick_history.json`.
+- Recent usage snapshots are fed back into generation as recency penalties, reducing repeat outputs across repeated API calls.
 
 ### UI behavior
 - `app/templates/picks.html` and `app/static/js/picks.js` include a legacy-era toggle used by pick generation requests.

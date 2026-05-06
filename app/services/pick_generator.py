@@ -1,6 +1,7 @@
 """Module 17: Filtered Pick Generator."""
 from __future__ import annotations
 
+from math import ceil
 import random
 
 import numpy as np
@@ -34,6 +35,8 @@ def generate_picks(
     precomputed: dict | None = None,
     excluded_main: set[tuple[int, ...]] | None = None,
     excluded_with_bonus: set[tuple[tuple[int, ...], int]] | None = None,
+    recent_main_usage: dict[int, int] | None = None,
+    recent_bonus_usage: dict[int, int] | None = None,
 ) -> list[dict]:
     """
     Generate `count` optimised picks for a given game.
@@ -68,26 +71,45 @@ def generate_picks(
     anti_pairs = clust_data.get("anti_pairs", [])
     excluded_main = excluded_main or set()
     excluded_with_bonus = excluded_with_bonus or set()
+    recent_main_usage = recent_main_usage or {}
+    recent_bonus_usage = recent_bonus_usage or {}
     results: list[dict] = []
     seen_combos: set[tuple] = set()
     attempts = 0
     max_attempts = 2000
 
-    # Use top 20 candidates; expand if we can't fill `count` valid combos
-    candidate_size = max(20, pick * 4)
+    # Expand candidate window based on requested diversity and ticket count.
+    candidate_size = _dynamic_candidate_size(
+        pool_size=len(pool),
+        pick_size=pick,
+        count=count,
+        diversity_level=diversity_level,
+    )
     candidates = ranked[:candidate_size]
     number_usage: dict[int, int] = dict.fromkeys(candidates, 0)
+    bonus_usage: dict[int, int] = {}
     diversity_level = _clamp_int(diversity_level, 0, 100)
     max_overlap = _max_allowed_overlap(game, pick, diversity_level)
+    max_number_usage = _max_number_usage(
+        game=game,
+        count=count,
+        pick_size=pick,
+        candidate_size=len(candidates),
+        diversity_level=diversity_level,
+    )
 
     while len(results) < count and attempts < max_attempts:
         attempts += 1
         # Penalize heavily reused numbers so generated tickets have wider coverage.
         weights_list = [
-            _diversified_weight(
-                composite.get(n, 1),
-                number_usage.get(n, 0),
-                diversity_level,
+            _history_penalized_weight(
+                base_weight=_diversified_weight(
+                    composite.get(n, 1),
+                    number_usage.get(n, 0),
+                    diversity_level,
+                ),
+                recent_usage=recent_main_usage.get(n, 0),
+                diversity_level=diversity_level,
             )
             for n in candidates
         ]
@@ -103,6 +125,12 @@ def generate_picks(
         if combo in seen_combos:
             continue
         if combo in excluded_main:
+            continue
+
+        usage_cap = max_number_usage
+        if attempts > max_attempts // 2:
+            usage_cap += 1
+        if any(number_usage.get(n, 0) >= usage_cap for n in combo):
             continue
 
         # Avoid near-duplicate tickets (for lotto: no 5/6 overlap; target <= 3 shared).
@@ -140,10 +168,17 @@ def generate_picks(
         if game in _BONUS_POOL:
             bonus_pool = list(range(1, _BONUS_POOL[game] + 1))
             bonus_freq = _get_bonus_freq(df, game)
-            bonus = _pick_bonus(bonus_pool, bonus_freq)
+            bonus = _pick_bonus(
+                bonus_pool=bonus_pool,
+                freq=bonus_freq,
+                bonus_usage=bonus_usage,
+                recent_bonus_usage=recent_bonus_usage,
+                diversity_level=diversity_level,
+            )
             if (combo, bonus) in excluded_with_bonus:
                 continue
             result["bonus"] = bonus
+            bonus_usage[bonus] = bonus_usage.get(bonus, 0) + 1
 
         results.append(result)
 
@@ -197,6 +232,12 @@ def _diversified_weight(base_weight: float, usage_count: int, diversity_level: i
     return max(1e-6, base_weight / (1.0 + (penalty_factor * usage_count)))
 
 
+def _history_penalized_weight(base_weight: float, recent_usage: int, diversity_level: int) -> float:
+    """Penalize numbers that were overused in recent generator runs."""
+    history_factor = 0.1 + (0.9 * (diversity_level / 100.0))
+    return max(1e-6, base_weight / (1.0 + (history_factor * recent_usage)))
+
+
 def _overlap_count(a: tuple[int, ...], b: tuple[int, ...]) -> int:
     """Count shared numbers between two picks."""
     return len(set(a).intersection(b))
@@ -211,6 +252,36 @@ def _max_allowed_overlap(game: str, pick_size: int, diversity_level: int) -> int
     return max(1, (pick_size - 2) + relax)
 
 
+def _max_number_usage(
+    game: str,
+    count: int,
+    pick_size: int,
+    candidate_size: int,
+    diversity_level: int,
+) -> int:
+    """Compute how many times a number may appear in one generated run."""
+    avg_usage = (max(1, count) * max(1, pick_size)) / max(1, candidate_size)
+    slack = 0.4 + ((100 - diversity_level) / 60.0)
+    cap = ceil(avg_usage + slack)
+
+    # Two Step needs stronger anti-repeat controls to avoid sticky anchors.
+    if game == "twostep":
+        cap = min(cap, 2 if diversity_level >= 45 else 3)
+    return max(1, cap)
+
+
+def _dynamic_candidate_size(
+    pool_size: int,
+    pick_size: int,
+    count: int,
+    diversity_level: int,
+) -> int:
+    """Choose candidate pool size to balance quality and diversity."""
+    base = max(20, pick_size * 4)
+    spread_target = (count * pick_size) + round((diversity_level / 100.0) * (pick_size * 3 + count))
+    return min(pool_size, max(base, spread_target))
+
+
 def _clamp_int(value: int, low: int, high: int) -> int:
     """Clamp integer values to a configured inclusive range."""
     return max(low, min(high, int(value)))
@@ -223,10 +294,25 @@ def _get_bonus_freq(df: pd.DataFrame, game: str) -> dict[int, int]:
     return df["bonus"].dropna().astype(int).value_counts().to_dict()
 
 
-def _pick_bonus(bonus_pool: list[int], freq: dict) -> int:
+def _pick_bonus(
+    bonus_pool: list[int],
+    freq: dict,
+    bonus_usage: dict[int, int],
+    recent_bonus_usage: dict[int, int],
+    diversity_level: int,
+) -> int:
     if not freq:
         return random.choice(bonus_pool)
-    weights = [freq.get(n, 1) for n in bonus_pool]
+
+    weights = []
+    penalty_factor = 0.2 + (1.4 * (diversity_level / 100.0))
+    history_factor = 0.1 + (1.0 * (diversity_level / 100.0))
+    for n in bonus_pool:
+        base = float(freq.get(n, 1))
+        run_penalty = 1.0 + (penalty_factor * bonus_usage.get(n, 0))
+        history_penalty = 1.0 + (history_factor * recent_bonus_usage.get(n, 0))
+        weights.append(max(1e-6, base / (run_penalty * history_penalty)))
+
     total = sum(weights)
     probs = [w / total for w in weights]
     rng = np.random.default_rng()

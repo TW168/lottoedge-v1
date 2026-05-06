@@ -15,6 +15,7 @@ from app.services.excluded_picks import (
     main_exclusions,
 )
 from app.services.pick_generator import generate_picks
+from app.services.pick_history import record_generated_picks, recent_usage_snapshot
 from app.services.probability import get_odds
 
 router = APIRouter()
@@ -47,6 +48,8 @@ async def generate(payload: PickRequest, db: Session = Depends(get_session)):
         coverage=payload.weight_coverage,
     )
 
+    usage_snapshot = recent_usage_snapshot(payload.game, window=80)
+
     picks = generate_picks(
         df,
         payload.game,
@@ -55,7 +58,10 @@ async def generate(payload: PickRequest, db: Session = Depends(get_session)):
         diversity_level=payload.diversity_level,
         excluded_main=main_exclusions(payload.game),
         excluded_with_bonus=bonus_exclusions(payload.game),
+        recent_main_usage=usage_snapshot.get("main", {}),
+        recent_bonus_usage=usage_snapshot.get("bonus", {}),
     )
+    record_generated_picks(payload.game, picks, max_history=300)
     odds = get_odds(payload.game)
 
     return {

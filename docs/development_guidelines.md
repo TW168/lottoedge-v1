@@ -7,6 +7,12 @@
 - CSV upload reprocessing must support correcting existing draw dates (update instead of skip).
 - Any future changes to upload responses must keep frontend upload status messaging in sync.
 
+## Prediction Diversity Guardrails Added (2026-05-05)
+
+- Pick generation must apply anti-repeat penalties using recent generated-pick history.
+- Texas Two Step generation must keep anchor-number repetition constrained via usage caps.
+- Bonus-ball generation must include diversity penalties, not frequency-only sampling.
+
 ## Tests Added
 
 - `tests/test_data_loader.py`
