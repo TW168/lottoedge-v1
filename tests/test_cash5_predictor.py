@@ -116,6 +116,7 @@ def test_ensemble_predict_includes_split_and_ev(
     assert result["game"] == "cash5"
     assert len(result["top_numbers"]) == 5
     assert len(result["alternate_numbers"]) == 5
+    assert result["confidence_score"] >= 90.0
     assert 0.0 <= result["split_risk_score"] <= 100.0
     assert "ev_before_split" in result
     assert "ev_after_split" in result

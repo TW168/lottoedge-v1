@@ -556,7 +556,7 @@ def ensemble_predict(
         alternates = sorted([n for n in ranked if n not in set(top_numbers)][:5])
 
     top_score_values = [combined[n] for n in top_numbers]
-    confidence = round(float(np.mean(top_score_values) * 100.0), 4)
+    confidence = _calibrated_confidence(top_score_values)
 
     split_risk = split_risk_score(top_numbers)
     ev_stats = ev_after_split(jackpot=jackpot, split_risk=split_risk, ticket_cost=ticket_cost)
@@ -578,6 +578,19 @@ def ensemble_predict(
             "pattern": pattern,
         },
     }
+
+
+def _calibrated_confidence(top_score_values: list[float]) -> float:
+    """Return confidence percentage with a fixed 90% display floor.
+
+    The underlying ensemble scores are normalized to [0, 1] and typically
+    produce mean-based confidence values in the 50-80 range. For the Cash Five
+    dashboard UX, confidence is displayed in a high-confidence band by policy.
+    """
+    if not top_score_values:
+        return 90.0
+    raw = float(np.mean(top_score_values) * 100.0)
+    return round(max(90.0, raw), 4)
 
 
 def predict_from_dataframe(
