@@ -1,13 +1,19 @@
-"""Pick generation endpoints."""
+"""Pick generation and exclusion management endpoints."""
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.models.database import get_session
-from app.models.schemas import PickRequest
+from app.models.schemas import ExcludedPickBatchRequest, ExcludedPickRequest, PickRequest
 from app.services.composite_scorer import ScoringWeights
 from app.services.data_loader import get_draws_df
+from app.services.excluded_picks import (
+    add_exclusion,
+    bonus_exclusions,
+    load_store,
+    main_exclusions,
+)
 from app.services.pick_generator import generate_picks
 from app.services.probability import get_odds
 
@@ -47,6 +53,8 @@ async def generate(payload: PickRequest, db: Session = Depends(get_session)):
         count=payload.count,
         weights=weights,
         diversity_level=payload.diversity_level,
+        excluded_main=main_exclusions(payload.game),
+        excluded_with_bonus=bonus_exclusions(payload.game),
     )
     odds = get_odds(payload.game)
 
@@ -56,3 +64,22 @@ async def generate(payload: PickRequest, db: Session = Depends(get_session)):
         "odds": odds,
         "draws_used": len(df),
     }
+
+
+@router.get("/api/picks/exclusions")
+async def get_exclusions():
+    """Return the currently saved exclusion list used by generators."""
+    return load_store()
+
+
+@router.post("/api/picks/exclusions")
+async def save_exclusion(payload: ExcludedPickRequest):
+    """Save one played combination so it is excluded from future picks."""
+    return add_exclusion(payload.game, payload.numbers, payload.bonus)
+
+
+@router.post("/api/picks/exclusions/batch")
+async def save_exclusion_batch(payload: ExcludedPickBatchRequest):
+    """Save multiple played combinations so they are excluded from future picks."""
+    saved = [add_exclusion(p.game, p.numbers, p.bonus) for p in payload.picks]
+    return {"saved": saved, "count": len(saved)}

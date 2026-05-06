@@ -32,6 +32,8 @@ def generate_picks(
     weights: ScoringWeights | None = None,
     diversity_level: int = 60,
     precomputed: dict | None = None,
+    excluded_main: set[tuple[int, ...]] | None = None,
+    excluded_with_bonus: set[tuple[tuple[int, ...], int]] | None = None,
 ) -> list[dict]:
     """
     Generate `count` optimised picks for a given game.
@@ -64,6 +66,8 @@ def generate_picks(
     ranked = sorted(pool, key=lambda n: composite.get(n, 0), reverse=True)
 
     anti_pairs = clust_data.get("anti_pairs", [])
+    excluded_main = excluded_main or set()
+    excluded_with_bonus = excluded_with_bonus or set()
     results: list[dict] = []
     seen_combos: set[tuple] = set()
     attempts = 0
@@ -97,6 +101,8 @@ def generate_picks(
 
         combo = tuple(sorted(chosen))
         if combo in seen_combos:
+            continue
+        if combo in excluded_main:
             continue
 
         # Avoid near-duplicate tickets (for lotto: no 5/6 overlap; target <= 3 shared).
@@ -134,7 +140,10 @@ def generate_picks(
         if game in _BONUS_POOL:
             bonus_pool = list(range(1, _BONUS_POOL[game] + 1))
             bonus_freq = _get_bonus_freq(df, game)
-            result["bonus"] = _pick_bonus(bonus_pool, bonus_freq)
+            bonus = _pick_bonus(bonus_pool, bonus_freq)
+            if (combo, bonus) in excluded_with_bonus:
+                continue
+            result["bonus"] = bonus
 
         results.append(result)
 

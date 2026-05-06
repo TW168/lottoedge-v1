@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from itertools import combinations
 from math import comb
 from statistics import mean, pstdev
 from typing import Any
@@ -457,6 +458,7 @@ def ensemble_predict(
     jackpot: float,
     ticket_cost: float,
     temperature: float = 1.0,
+    excluded_combinations: set[tuple[int, ...]] | None = None,
 ) -> dict[str, Any]:
     """Combine all Cash Five algorithms into a weighted ensemble prediction.
 
@@ -517,10 +519,41 @@ def ensemble_predict(
     probs = np.exp(logits)
     probs /= probs.sum()
 
-    # Sample 10 distinct numbers without replacement
-    selected = _rng.choice(nums_arr, size=10, replace=False, p=probs)
-    top_numbers = sorted(int(n) for n in selected[:5])
-    alternates = sorted(int(n) for n in selected[5:])
+    excluded = excluded_combinations or set()
+
+    # Sample 10 distinct numbers without replacement and avoid excluded top combos.
+    selected = None
+    top_numbers: list[int] = []
+    alternates: list[int] = []
+    for _ in range(300):
+        sampled = _rng.choice(nums_arr, size=10, replace=False, p=probs)
+        candidate_top = sorted(int(n) for n in sampled[:5])
+        if tuple(candidate_top) in excluded:
+            continue
+        selected = sampled
+        top_numbers = candidate_top
+        alternates = sorted(int(n) for n in sampled[5:])
+        break
+
+    if selected is None:
+        ranked = sorted(combined.keys(), key=lambda n: combined[n], reverse=True)
+        top_window = ranked[:15]
+        best_combo: tuple[int, ...] | None = None
+        best_score = -1.0
+        for combo in combinations(top_window, 5):
+            combo_sorted = tuple(sorted(combo))
+            if combo_sorted in excluded:
+                continue
+            score = float(sum(combined[n] for n in combo_sorted))
+            if score > best_score:
+                best_score = score
+                best_combo = combo_sorted
+
+        if best_combo is None:
+            best_combo = tuple(sorted(ranked[:5]))
+
+        top_numbers = list(best_combo)
+        alternates = sorted([n for n in ranked if n not in set(top_numbers)][:5])
 
     top_score_values = [combined[n] for n in top_numbers]
     confidence = round(float(np.mean(top_score_values) * 100.0), 4)
@@ -555,6 +588,7 @@ def predict_from_dataframe(
     jackpot: float,
     ticket_cost: float,
     temperature: float = 1.0,
+    excluded_combinations: set[tuple[int, ...]] | None = None,
 ) -> dict[str, Any]:
     """Run the full Cash Five prediction flow from DataFrame input.
 
@@ -579,4 +613,5 @@ def predict_from_dataframe(
         jackpot=jackpot,
         ticket_cost=ticket_cost,
         temperature=temperature,
+        excluded_combinations=excluded_combinations,
     )

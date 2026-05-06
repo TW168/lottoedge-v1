@@ -12,6 +12,7 @@ from app.models.schemas import CashFivePredictionRequest, CashFivePredictionResp
 from app.services import cash5_predictor
 from app.services.cash5_predictor import EnsembleWeights
 from app.services.data_loader import get_draws_df
+from app.services.excluded_picks import main_exclusions
 
 router = APIRouter(prefix="/api", tags=["cash5-predictions"])
 
@@ -285,6 +286,7 @@ def prediction_ensemble(
         jackpot=payload.jackpot,
         ticket_cost=payload.ticket_cost,
         temperature=payload.temperature,
+        excluded_combinations=main_exclusions("cash5"),
     )
 
     db_row = CashFivePredictionRun(

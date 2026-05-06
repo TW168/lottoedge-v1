@@ -86,3 +86,13 @@ class CashFivePredictionResponse(BaseModel):
     ev_before_split: float
     ev_after_split: float
     disclaimer: str
+
+
+class ExcludedPickRequest(BaseModel):
+    game: str
+    numbers: list[int]
+    bonus: Optional[int] = None
+
+
+class ExcludedPickBatchRequest(BaseModel):
+    picks: list[ExcludedPickRequest]
