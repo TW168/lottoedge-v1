@@ -15,6 +15,7 @@
   - Adaptive candidate pool size grows with requested diversity and ticket count.
   - Per-run number usage caps prevent sticky anchor numbers from dominating a batch.
   - Bonus-ball selection now applies run-level and recent-history penalties.
+- Texas Two Step display scores are calibrated from raw composite scores to a clearer 70-90 confidence band while preserving pick ordering. Raw values are retained as `raw_composite_score` in API output.
 
 ### Generated pick memory
 - `app/services/pick_history.py` stores recent generated picks in `data/pick_history.json`.

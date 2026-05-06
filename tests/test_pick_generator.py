@@ -6,6 +6,7 @@ import pytest
 
 from app.services.balance import analyze_balance, passes_balance_filter
 from app.services.pick_generator import (
+    _apply_display_score_calibration,
     _history_penalized_weight,
     _max_number_usage,
     _validate,
@@ -95,3 +96,23 @@ def test_twostep_usage_cap_is_tight_under_normal_diversity():
         diversity_level=60,
     )
     assert cap <= 2
+
+
+def test_twostep_score_calibration_reaches_70_band():
+    results = [
+        {"composite_score": 62.1, "filter_notes": ["x"]},
+        {"composite_score": 63.4, "filter_notes": []},
+        {"composite_score": 64.2, "filter_notes": []},
+    ]
+
+    calibrated = _apply_display_score_calibration(results, game="twostep")
+    top = max(r["composite_score"] for r in calibrated)
+    assert top >= 70.0
+    assert all("raw_composite_score" in r for r in calibrated)
+
+
+def test_non_twostep_score_calibration_noop():
+    results = [{"composite_score": 59.8, "filter_notes": []}]
+    calibrated = _apply_display_score_calibration(results, game="lotto")
+    assert calibrated[0]["composite_score"] == 59.8
+    assert "raw_composite_score" not in calibrated[0]
