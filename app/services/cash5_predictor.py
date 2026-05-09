@@ -581,16 +581,15 @@ def ensemble_predict(
 
 
 def _calibrated_confidence(top_score_values: list[float]) -> float:
-    """Return confidence percentage with a fixed 90% display floor.
+    """Return actual confidence percentage as mean of top scores.
 
-    The underlying ensemble scores are normalized to [0, 1] and typically
-    produce mean-based confidence values in the 50-80 range. For the Cash Five
-    dashboard UX, confidence is displayed in a high-confidence band by policy.
+    The ensemble produces normalized scores [0, 1]. Confidence is the
+    actual mean of the top 5 picks' scores, expressed as a percentage.
     """
     if not top_score_values:
-        return 90.0
+        return 0.0
     raw = float(np.mean(top_score_values) * 100.0)
-    return round(max(90.0, raw), 4)
+    return round(raw, 2)
 
 
 def predict_from_dataframe(
