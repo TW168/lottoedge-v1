@@ -16,6 +16,9 @@ POOL_MIN = 1
 POOL_MAX = 35
 PICK_SIZE = 5
 
+# Keep one RNG per process so sampling is stable and uses the modern Generator API.
+_RNG = np.random.default_rng()
+
 
 @dataclass
 class EnsembleWeights:
@@ -296,7 +299,12 @@ def monte_carlo_analysis(
     hit_counts = Counter()
     population = np.arange(1, 36)
 
-    _rng_mc = np.random.default_rng()
+    # Use a stable seed derived from inputs so repeated runs on identical
+    # history produce consistent scores in deterministic prediction mode.
+    seed_accumulator = simulations * 1315423911 + len(source) * 2654435761
+    for num in range(1, 36):
+        seed_accumulator += num * 97 + counts.get(num, 0) * 13
+    _rng_mc = np.random.default_rng(seed_accumulator % (2**32))
     for _ in range(max(simulations, 1)):
         ticket = _rng_mc.choice(population, size=PICK_SIZE, replace=False, p=probs)
         nums = sorted(int(n) for n in ticket.tolist())
@@ -506,10 +514,6 @@ def ensemble_predict(
             + weight_values["pattern"] * pattern["scores"][num]
         ) / total_w
 
-    # Add a module-level RNG so all sampling is reproducible per-session
-    # and uses the new Generator API instead of the legacy global state.
-    _rng = np.random.default_rng()
-
     nums_arr = np.array(list(combined.keys()), dtype=int)
     scores_arr = np.array([combined[n] for n in nums_arr], dtype=float)
     temp = max(temperature, 1e-6)
@@ -521,18 +525,65 @@ def ensemble_predict(
 
     excluded = excluded_combinations or set()
 
-    # Sample 10 distinct numbers without replacement and avoid excluded top combos.
+    # Near-deterministic mode: prioritize highest scored combinations directly.
+    if temperature <= 0.35:
+        ranked = sorted(combined.keys(), key=lambda n: combined[n], reverse=True)
+        top_window = ranked[:15]
+        best_combo: tuple[int, ...] | None = None
+        best_score = -1.0
+        for combo in combinations(top_window, PICK_SIZE):
+            combo_sorted = tuple(sorted(combo))
+            if combo_sorted in excluded:
+                continue
+            score = float(sum(combined[n] for n in combo_sorted))
+            if score > best_score:
+                best_score = score
+                best_combo = combo_sorted
+
+        if best_combo is None:
+            best_combo = tuple(sorted(ranked[:PICK_SIZE]))
+
+        top_numbers = list(best_combo)
+        alternates = sorted([n for n in ranked if n not in set(top_numbers)][:PICK_SIZE])
+
+        top_score_values = [combined[n] for n in top_numbers]
+        confidence = _calibrated_confidence(top_score_values)
+
+        split_risk = split_risk_score(top_numbers)
+        ev_stats = ev_after_split(jackpot=jackpot, split_risk=split_risk, ticket_cost=ticket_cost)
+
+        return {
+            "game": "cash5",
+            "top_numbers": top_numbers,
+            "alternate_numbers": alternates,
+            "confidence_score": confidence,
+            "split_risk_score": split_risk,
+            "ev_before_split": ev_stats["ev_before_split"],
+            "ev_after_split": ev_stats["ev_after_split"],
+            "components": {
+                "frequency": freq,
+                "hot_cold": hot,
+                "gap": gap,
+                "markov": markov,
+                "monte_carlo": mc,
+                "pattern": pattern,
+            },
+        }
+
+    # Sample 10 distinct numbers and then choose top/alternate by score order,
+    # not sample position, to avoid arbitrary ranking noise.
     selected = None
     top_numbers: list[int] = []
     alternates: list[int] = []
     for _ in range(300):
-        sampled = _rng.choice(nums_arr, size=10, replace=False, p=probs)
-        candidate_top = sorted(int(n) for n in sampled[:5])
+        sampled = _RNG.choice(nums_arr, size=10, replace=False, p=probs)
+        sampled_ranked = sorted((int(n) for n in sampled), key=lambda n: combined[n], reverse=True)
+        candidate_top = sorted(sampled_ranked[:PICK_SIZE])
         if tuple(candidate_top) in excluded:
             continue
         selected = sampled
         top_numbers = candidate_top
-        alternates = sorted(int(n) for n in sampled[5:])
+        alternates = sorted(sampled_ranked[PICK_SIZE: PICK_SIZE * 2])
         break
 
     if selected is None:

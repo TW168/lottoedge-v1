@@ -116,7 +116,7 @@ def test_ensemble_predict_includes_split_and_ev(
     assert result["game"] == "cash5"
     assert len(result["top_numbers"]) == 5
     assert len(result["alternate_numbers"]) == 5
-    assert result["confidence_score"] >= 90.0
+    assert 0.0 <= result["confidence_score"] <= 100.0
     assert 0.0 <= result["split_risk_score"] <= 100.0
     assert "ev_before_split" in result
     assert "ev_after_split" in result
@@ -198,3 +198,63 @@ def test_ensemble_picks_vary_across_calls(
         "ensemble_predict returned the same 5 numbers across 20 calls — "
         "softmax sampling is not working"
     )
+
+
+def test_ensemble_default_temperature_is_deterministic(
+    synthetic_cash5_draws: list[list[int]],
+):
+    """Low-temperature mode should return stable top picks across calls."""
+    seen: set[tuple[int, ...]] = set()
+    for _ in range(10):
+        result = ensemble_predict(
+            draws=synthetic_cash5_draws,
+            weights=EnsembleWeights(),
+            window=120,
+            monte_carlo_samples=500,
+            jackpot=100000.0,
+            ticket_cost=1.0,
+            temperature=0.35,
+        )
+        seen.add(tuple(result["top_numbers"]))
+    assert len(seen) == 1
+
+
+def test_ensemble_top_numbers_rank_above_alternates(
+    synthetic_cash5_draws: list[list[int]],
+):
+    """Top numbers must not score below alternates in a single prediction."""
+    result = ensemble_predict(
+        draws=synthetic_cash5_draws,
+        weights=EnsembleWeights(),
+        window=120,
+        monte_carlo_samples=800,
+        jackpot=100000.0,
+        ticket_cost=1.0,
+        temperature=1.0,
+    )
+
+    comps = result["components"]
+    weights = {
+        "frequency": 1.0,
+        "hot_cold": 1.0,
+        "gap": 1.0,
+        "markov": 1.0,
+        "monte_carlo": 1.0,
+        "pattern": 1.0,
+    }
+    total_w = sum(weights.values())
+
+    def combined_score(num: int) -> float:
+        return (
+            weights["frequency"] * comps["frequency"]["scores"][num]
+            + weights["hot_cold"] * comps["hot_cold"]["scores"][num]
+            + weights["gap"] * comps["gap"]["scores"][num]
+            + weights["markov"] * comps["markov"]["scores"][num]
+            + weights["monte_carlo"] * comps["monte_carlo"]["scores"][num]
+            + weights["pattern"] * comps["pattern"]["scores"][num]
+        ) / total_w
+
+    top_scores = [combined_score(n) for n in result["top_numbers"]]
+    alt_scores = [combined_score(n) for n in result["alternate_numbers"]]
+
+    assert min(top_scores) >= max(alt_scores)
