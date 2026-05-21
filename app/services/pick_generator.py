@@ -42,6 +42,7 @@ def generate_picks(
     excluded_with_bonus: set[tuple[tuple[int, ...], int]] | None = None,
     recent_main_usage: dict[int, int] | None = None,
     recent_bonus_usage: dict[int, int] | None = None,
+    blocked_anchor_pairs: set[tuple[int, ...]] | None = None,
 ) -> list[dict]:
     """
     Generate `count` optimised picks for a given game.
@@ -92,6 +93,7 @@ def generate_picks(
     excluded_with_bonus = excluded_with_bonus or set()
     recent_main_usage = recent_main_usage or {}
     recent_bonus_usage = recent_bonus_usage or {}
+    blocked_anchor_pairs = blocked_anchor_pairs or set()
     results: list[dict] = []
     seen_combos: set[tuple] = set()
     attempts = 0
@@ -144,6 +146,11 @@ def generate_picks(
         if combo in seen_combos:
             continue
         if combo in excluded_main:
+            continue
+
+        # Cash Five users often track lead-pair repeats across sessions.
+        # Prevent reissuing recently used first-two anchors from history.
+        if game == "cash5" and tuple(combo[:2]) in blocked_anchor_pairs:
             continue
 
         usage_cap = max_number_usage

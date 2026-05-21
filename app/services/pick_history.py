@@ -108,3 +108,29 @@ def recent_usage_snapshot(game: str, window: int = 80) -> dict[str, dict[int, in
             bonus_usage[bonus_int] = bonus_usage.get(bonus_int, 0) + 1
 
     return {"main": main_usage, "bonus": bonus_usage}
+
+
+def recent_anchor_pairs(
+    game: str,
+    window: int = 80,
+    prefix_len: int = 2,
+) -> set[tuple[int, ...]]:
+    """Collect recent leading-number tuples from generated picks.
+
+    Args:
+        game: Game key.
+        window: Number of most recent generated picks to analyze.
+        prefix_len: Leading tuple size to capture from each sorted pick.
+
+    Returns:
+        Set of leading tuples observed in recent history.
+    """
+    payload = _load_payload()
+    rows = payload["games"].get(game, [])[-max(1, int(window)) :]
+
+    out: set[tuple[int, ...]] = set()
+    for row in rows:
+        numbers = sorted(int(n) for n in row.get("numbers", []))
+        if len(numbers) >= prefix_len:
+            out.add(tuple(numbers[:prefix_len]))
+    return out

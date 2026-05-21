@@ -172,3 +172,14 @@ def test_generate_picks_pipeline_per_game(game):
     # Scores must be returned in descending order (highest-confidence first).
     scores = [p["composite_score"] for p in picks]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_cash5_blocks_recent_anchor_pairs_across_runs():
+    """Cash5 should avoid reusing recently seen first-two sorted anchors."""
+    df = _make_game_df("cash5", n=220)
+
+    blocked = {(7, 13), (11, 19)}
+    picks = generate_picks(df, "cash5", count=5, blocked_anchor_pairs=blocked)
+
+    anchors = {tuple(p["numbers"][:2]) for p in picks}
+    assert anchors.isdisjoint(blocked)
