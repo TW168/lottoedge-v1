@@ -10,8 +10,38 @@ from app.services.pick_generator import (
     _history_penalized_weight,
     _max_number_usage,
     _validate,
+    generate_picks,
 )
 from app.services.sum_range import compute_sum_range, passes_sum_gate
+
+
+_GAME_SPECS = {
+    "lotto":     {"pool": 54, "pick": 6, "bonus_pool": None},
+    "twostep":   {"pool": 35, "pick": 4, "bonus_pool": 35},
+    "powerball": {"pool": 69, "pick": 5, "bonus_pool": 26},
+    "cash5":     {"pool": 35, "pick": 5, "bonus_pool": None},
+}
+
+
+def _make_game_df(game: str, n: int = 200) -> pd.DataFrame:
+    """Build a synthetic draw history that matches the loader's expected shape."""
+    random.seed(42)
+    spec = _GAME_SPECS[game]
+    rows = []
+    for _ in range(n):
+        nums = sorted(random.sample(range(1, spec["pool"] + 1), spec["pick"]))
+        row = {f"n{i + 1}": nums[i] for i in range(spec["pick"])}
+        for i in range(spec["pick"], 6):
+            row[f"n{i + 1}"] = None
+        row["bonus"] = (
+            random.randint(1, spec["bonus_pool"]) if spec["bonus_pool"] else None
+        )
+        row["power_play"] = None
+        row["era"] = "era3"
+        row["is_bonus_era"] = False
+        row["draw_date"] = None
+        rows.append(row)
+    return pd.DataFrame(rows)
 
 
 def _make_lotto_df(n: int = 100) -> pd.DataFrame:
@@ -98,21 +128,47 @@ def test_twostep_usage_cap_is_tight_under_normal_diversity():
     assert cap <= 2
 
 
-def test_twostep_score_calibration_reaches_70_band():
+def test_score_calibration_is_honest_passthrough():
+    # Display calibration was intentionally removed: scores must reflect the raw
+    # composite output without artificial inflation into a "confidence band".
     results = [
         {"composite_score": 62.1, "filter_notes": ["x"]},
         {"composite_score": 63.4, "filter_notes": []},
         {"composite_score": 64.2, "filter_notes": []},
     ]
+    for game in ("twostep", "lotto", "powerball", "cash5"):
+        calibrated = _apply_display_score_calibration(
+            [dict(r) for r in results], game=game
+        )
+        assert [r["composite_score"] for r in calibrated] == [62.1, 63.4, 64.2]
+        assert all("raw_composite_score" not in r for r in calibrated)
 
-    calibrated = _apply_display_score_calibration(results, game="twostep")
-    top = max(r["composite_score"] for r in calibrated)
-    assert top >= 70.0
-    assert all("raw_composite_score" in r for r in calibrated)
 
+@pytest.mark.parametrize("game", ["lotto", "twostep", "powerball", "cash5"])
+def test_generate_picks_pipeline_per_game(game):
+    """End-to-end smoke test: each game produces valid, in-pool picks with scores."""
+    df = _make_game_df(game, n=200)
+    spec = _GAME_SPECS[game]
 
-def test_non_twostep_score_calibration_noop():
-    results = [{"composite_score": 59.8, "filter_notes": []}]
-    calibrated = _apply_display_score_calibration(results, game="lotto")
-    assert calibrated[0]["composite_score"] == 59.8
-    assert "raw_composite_score" not in calibrated[0]
+    picks = generate_picks(df, game, count=3)
+    assert len(picks) == 3
+
+    for p in picks:
+        nums = p["numbers"]
+        assert len(nums) == spec["pick"]
+        assert len(set(nums)) == spec["pick"], "no duplicate main numbers"
+        assert all(1 <= n <= spec["pool"] for n in nums), "main numbers in pool"
+        assert nums == sorted(nums), "main numbers sorted"
+        assert 0.0 <= p["composite_score"] <= 100.0
+        assert p["sum_value"] == sum(nums)
+        assert isinstance(p["filter_notes"], list)
+
+        if spec["bonus_pool"]:
+            assert "bonus" in p
+            assert 1 <= p["bonus"] <= spec["bonus_pool"], "bonus number in pool"
+        else:
+            assert "bonus" not in p
+
+    # Scores must be returned in descending order (highest-confidence first).
+    scores = [p["composite_score"] for p in picks]
+    assert scores == sorted(scores, reverse=True)

@@ -15,7 +15,19 @@
   - Adaptive candidate pool size grows with requested diversity and ticket count.
   - Per-run number usage caps prevent sticky anchor numbers from dominating a batch.
   - Bonus-ball selection now applies run-level and recent-history penalties.
-- Texas Two Step display scores are calibrated from raw composite scores to a clearer 70-90 confidence band while preserving pick ordering. Raw values are retained as `raw_composite_score` in API output.
+- Display scores are passed through directly from the composite scorer without artificial confidence-band calibration.
+
+### New strategy signals (2026-05-20)
+- Added `app/services/game_theory.py` with split-avoidance utility scoring:
+  - Recency-weighted popularity estimation.
+  - Utility inversion (`utility = 1 - popularity`) to favor less common selections.
+- Added `app/services/reinforcement_learning.py` with a lightweight epsilon-greedy tabular learner:
+  - Trains from historical draw transitions.
+  - Produces normalized per-number RL preference scores.
+- Integrated both signals in `app/services/pick_generator.py` by blending with base composite scores:
+  - 85% base composite score
+  - 10% game-theory split-avoidance score
+  - 5% reinforcement-learning score
 
 ### Generated pick memory
 - `app/services/pick_history.py` stores recent generated picks in `data/pick_history.json`.

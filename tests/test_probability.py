@@ -40,6 +40,14 @@ def test_powerball_jackpot_odds():
     assert abs(1 / jackpot_tier["probability"] - 292_201_338) < 1000
 
 
+def test_twostep_jackpot_odds():
+    tiers = twostep_odds()
+    jackpot_tier = next(t for t in tiers if t["match"] == "4+BB")
+    # Published: 1 in 1,832,600 = C(35,4) * 35
+    assert jackpot_tier["odds"] == "1 in 1,832,600"
+    assert abs(1 / jackpot_tier["probability"] - 1_832_600) < 1
+
+
 def test_probabilities_sum_less_than_one():
     for game in ["lotto", "twostep", "powerball"]:
         tiers = get_odds(game)

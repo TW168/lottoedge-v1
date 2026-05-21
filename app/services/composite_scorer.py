@@ -132,3 +132,5 @@ def _norm(val: float, lo: float, hi: float) -> float:
 
 def _clamp(val: float) -> float:
     return max(0.0, min(1.0, val))
+
+

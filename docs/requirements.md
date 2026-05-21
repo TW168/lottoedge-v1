@@ -4,6 +4,7 @@ LottoEdge provides data-driven analysis and pick generation for Texas lottery ga
 ## Functional Requirements
 - Upload CSV history and persist draws.
 - Generate picks with statistical and ML signals.
+- Blend split-avoidance and reinforcement-learning signals into pick ranking.
 - Support era-aware filtering for games with format changes.
 
 ## Non-Functional Requirements
@@ -16,3 +17,4 @@ LottoEdge provides data-driven analysis and pick generation for Texas lottery ga
 ## Future Enhancements
 - Rename `include_era2` to a generic `include_legacy_eras` API field for clarity.
 - Add endpoint-level integration tests for picker payload era toggles.
+- Expose strategy blend weights (base/game-theory/RL) as API-configurable controls.

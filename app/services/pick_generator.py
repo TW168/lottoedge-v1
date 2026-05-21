@@ -11,7 +11,12 @@ from app.services.balance import analyze_balance, passes_balance_filter
 from app.services.cluster import compute_clusters, is_anti_cluster
 from app.services.composite_scorer import ScoringWeights, compute_composite_scores
 from app.services.consecutive import passes_consecutive_filter
+from app.services.game_theory import (
+    calculate_number_popularity,
+    compute_split_avoidance_utility,
+)
 from app.services.group_dist import passes_group_filter
+from app.services.reinforcement_learning import LotteryRLAgent
 from app.services.sum_range import passes_sum_gate
 from app.services import (
     frequency as freq_mod,
@@ -63,6 +68,20 @@ def generate_picks(
         ml_scores=ml_scores,
         mc_data=mc_data,
         weights=weights,
+    )
+
+    draw_history = _extract_draw_history(df, pick_size=pick)
+    gt_scores = _compute_game_theory_scores(draw_history=draw_history, pool_size=_POOL[game])
+    rl_scores = _compute_rl_scores(
+        draw_history=draw_history,
+        pool_size=_POOL[game],
+        pick_size=pick,
+    )
+
+    composite = _blend_strategy_scores(
+        base_scores=composite,
+        gt_scores=gt_scores,
+        rl_scores=rl_scores,
     )
 
     # Sort by score descending — top candidates
@@ -297,6 +316,11 @@ def _clamp_int(value: int, low: int, high: int) -> int:
     return max(low, min(high, int(value)))
 
 
+def _clamp(value: float) -> float:
+    """Clamp a float to the inclusive [0, 1] range."""
+    return max(0.0, min(1.0, float(value)))
+
+
 def _get_bonus_freq(df: pd.DataFrame, game: str) -> dict[int, int]:
     """Count bonus ball appearances."""
     if "bonus" not in df.columns:
@@ -327,3 +351,58 @@ def _pick_bonus(
     probs = [w / total for w in weights]
     rng = np.random.default_rng()
     return int(rng.choice(bonus_pool, p=probs))
+
+
+def _extract_draw_history(df: pd.DataFrame, pick_size: int) -> list[list[int]]:
+    """Extract historical draws from canonical n1..n6 columns."""
+    cols = [f"n{i}" for i in range(1, pick_size + 1)]
+    existing_cols = [col for col in cols if col in df.columns]
+    if not existing_cols:
+        return []
+
+    history: list[list[int]] = []
+    for _, row in df[existing_cols].iterrows():
+        draw = [int(v) for v in row.tolist() if pd.notna(v)]
+        if len(draw) == pick_size:
+            history.append(sorted(draw))
+    return history
+
+
+def _compute_game_theory_scores(
+    draw_history: list[list[int]],
+    pool_size: int,
+) -> dict[int, float]:
+    """Compute split-avoidance utility scores for each number."""
+    popularity = calculate_number_popularity(draw_history=draw_history, pool_size=pool_size)
+    return compute_split_avoidance_utility(popularity)
+
+
+def _compute_rl_scores(
+    draw_history: list[list[int]],
+    pool_size: int,
+    pick_size: int,
+) -> dict[int, float]:
+    """Compute per-number RL preference scores."""
+    agent = LotteryRLAgent(pool_size=pool_size, num_picks=pick_size)
+    agent.train(draw_history=draw_history, episodes=200)
+    return agent.number_scores()
+
+
+def _blend_strategy_scores(
+    base_scores: dict[int, float],
+    gt_scores: dict[int, float],
+    rl_scores: dict[int, float],
+) -> dict[int, float]:
+    """Blend base composite scores with game-theory and RL signals.
+
+    The blend keeps the existing pipeline dominant while adding small tactical
+    corrections from split-avoidance (game theory) and temporal adaptation (RL).
+    """
+    blended: dict[int, float] = {}
+    for number, raw_score in base_scores.items():
+        base = _clamp(raw_score / 100.0)
+        gt = gt_scores.get(number, 0.5)
+        rl = rl_scores.get(number, 0.5)
+        score = (0.85 * base) + (0.10 * gt) + (0.05 * rl)
+        blended[number] = round(_clamp(score) * 100, 2)
+    return blended
